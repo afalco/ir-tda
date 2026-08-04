@@ -94,7 +94,7 @@ requirements.txt   pip equivalent
 With conda (recommended — it pins the interpreter as well as the libraries):
 
 ```bash
-git clone https://github.com/<user>/ir-tda.git
+git clone https://github.com/afalco/ir-tda.git
 cd ir-tda
 conda env create -f environment.yml
 conda activate ir-tda
