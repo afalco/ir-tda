@@ -10,9 +10,10 @@ The method follows the persistence-image workflow developed by Frahi, Falcó,
 Chinesta and co-workers for rough surfaces, elastodynamic modes and robot
 trajectories, adapted here to one-dimensional vibrational spectra.
 
-Everything needed to reproduce the analysis is in this repository: the raw
-instrument workbook, the material labels, the library, the scripts and the
-figures they produce.
+Everything needed to reproduce the analysis is in this repository: the
+processed spectra and thermogravimetric curves, the material labels, the
+library, the scripts and the figures they produce. The raw instrument workbook
+is not redistributed — see [Data](#data).
 
 ## Results at a glance
 
@@ -77,8 +78,9 @@ scalars discard.
 ## Layout
 
 ```
-data/raw/          instrument workbook and the supplier reference list
-data/processed/    resampled spectra and material labels (built by step 1)
+data/raw/          where the instrument workbook goes; not redistributed
+data/processed/    resampled spectra, TG curves and labels — enough to rerun
+                   steps 2 to 8 without the workbook
 src/irtda/         the library
 scripts/           the eight pipeline steps
 tests/             unit tests for the persistence and image code
@@ -181,19 +183,34 @@ for the dendrogram and the MDS embedding.
 
 ## Data
 
-`data/raw/Resultados Informe.xlsx` is the results workbook of the study
-*Caracterización de suelas de calzado* (Grupo de Investigación de Procesado y
-Pirólisis de Polímeros, Instituto Universitario de Ingeniería de Procesos
-Químicos, Universidad de Alicante, 2021). One worksheet per material reference;
-columns A and B hold the wavenumber [cm⁻¹] and the ATR absorbance, and a
-further block holds the thermogravimetric run on the same specimen (elapsed
-time, sample temperature, residual mass), from which step 6 derives the
-processing-window targets. The EGA/Py/GC/MS results in the same worksheets are
-not used.
+### What is included, and what is not
 
-`data/raw/references.txt` maps each reference number to its description and
-supplier; the material family is derived from the description by the patterns
-in `src/irtda/dataset.py`.
+**Not redistributed.** `data/raw/Resultados Informe.xlsx` and
+`data/raw/references.txt` come from the characterisation study
+*Caracterización de suelas de calzado*, carried out for a third party by the
+Grupo de Investigación de Procesado y Pirólisis de Polímeros, Instituto
+Universitario de Ingeniería de Procesos Químicos, Universidad de Alicante
+(2021). They are not ours to publish: the workbook holds the full IR and
+thermogravimetric traces of 39 commercial compounds and the reference list
+names each supplier and trade grade. Requests should go to the authors of that
+study.
+
+**Included.** `data/processed/` holds everything the analysis actually needs
+downstream: the spectra resampled onto a common grid (`spectra.npz`), the TG
+curves (`tg_curves.npz`), the material labels (`labels.csv`) and the thermal
+targets (`targets.csv`). Only steps 1 and 6 read the workbook; steps 2 to 8
+read `data/processed`, so **the results reproduce in full without it**. Step 1
+stops with an explanatory message if the workbook is absent.
+
+For reference, the workbook holds one worksheet per material: columns A and B
+are the wavenumber [cm⁻¹] and the ATR absorbance, and a further block is the
+thermogravimetric run on the same specimen. The EGA/Py/GC/MS results in the
+same worksheets are not used.
+
+`references.txt` maps each reference number to its description and supplier;
+the material family is derived from the description by the patterns in
+`src/irtda/dataset.py`. The derived families are in `data/processed/labels.csv`,
+which is included.
 
 Sheet `H4965` carries no reference number and is mapped to reference 47
 (TR "H49 65", Ruiz Alejos) on the strength of the grade name; this is the one

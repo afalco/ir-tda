@@ -22,8 +22,12 @@ SOFTWARE.
 
 ---
 
-The data in data/raw/ originates from the study "Caracterización de suelas de
-calzado" carried out for PIKOKAIZEN S.L. by the Grupo de Investigación de
-Procesado y Pirólisis de Polímeros, Instituto Universitario de Ingeniería de
-Procesos Químicos, Universidad de Alicante (2021). Redistribution of the data
-is subject to the terms agreed with its owners.
+The MIT licence above covers the code and the derived data in data/processed/.
+
+The raw characterisation data (data/raw/) is NOT distributed with this
+repository and is NOT covered by this licence. It originates from the study
+"Caracterización de suelas de calzado", carried out for PIKOKAIZEN S.L. by the
+Grupo de Investigación de Procesado y Pirólisis de Polímeros, Instituto
+Universitario de Ingeniería de Procesos Químicos, Universidad de Alicante
+(2021), and remains the property of its owners. Requests for it should be
+addressed to them.

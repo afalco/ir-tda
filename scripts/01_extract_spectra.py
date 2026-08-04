@@ -27,13 +27,28 @@ PROCESSED = ROOT / "data" / "processed"
 FIGURES = ROOT / "figures"
 
 
-def main() -> None:
+def main() -> int:
     PROCESSED.mkdir(parents=True, exist_ok=True)
     FIGURES.mkdir(parents=True, exist_ok=True)
 
-    spectra = dataset.load_workbook_spectra(
-        RAW / "Resultados Informe.xlsx", RAW / "references.txt"
-    )
+    workbook = RAW / "Resultados Informe.xlsx"
+    references = RAW / "references.txt"
+    missing = [p.name for p in (workbook, references) if not p.exists()]
+    if missing:
+        print(f"missing from data/raw: {', '.join(missing)}\n", file=sys.stderr)
+        print("These files are the property of the laboratory that produced the",
+              file=sys.stderr)
+        print("characterisation study and are not redistributed here. See the",
+              file=sys.stderr)
+        print("Data section of the README for how to request them.\n",
+              file=sys.stderr)
+        print("Steps 2 to 8 do not need them: they read data/processed, which",
+              file=sys.stderr)
+        print("is included, so the analysis reproduces without this step.",
+              file=sys.stderr)
+        return 1
+
+    spectra = dataset.load_workbook_spectra(workbook, references)
 
     np.savez_compressed(
         PROCESSED / "spectra.npz",
@@ -55,7 +70,8 @@ def main() -> None:
           f"({spectra.wavenumber[0]:.0f}-{spectra.wavenumber[-1]:.0f} cm-1)")
     print(spectra.metadata["family"].value_counts().to_string())
     print(f"\nwritten to {PROCESSED}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

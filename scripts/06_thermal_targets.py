@@ -9,7 +9,13 @@ steps. Shore hardness grades are parsed from the supplier descriptions.
 
 Writes:
     data/processed/targets.csv
+    data/processed/tg_curves.npz
     figures/06_tg_curves.png
+
+The TG curves are written out as well as consumed. Everything downstream then
+reads them from `data/processed`, so the raw characterisation workbook is
+needed only by steps 1 and 6. That matters because the workbook belongs to the
+laboratory that produced it and is not redistributed with this repository.
 """
 
 from __future__ import annotations
@@ -53,8 +59,17 @@ def main() -> None:
     print(targets.groupby("hardness_scale")["hardness_raw"]
           .agg(["count", "min", "max"]).to_string())
 
-    # -- figure: TG and DTG curves, coloured by family ----------------------
+    # -- persist the curves on a common grid --------------------------------
     curves = thermal.read_tg_curves(xlsx)
+    grid = np.linspace(40.0, 800.0, 600)
+    sheets = labels["sheet"].astype(str).tolist()
+    mass = np.vstack([np.interp(grid, *curves[s]) for s in sheets])
+    np.savez_compressed(PROCESSED / "tg_curves.npz",
+                        temperature=grid, mass=mass,
+                        sheet=np.array(sheets))
+    print(f"TG curves written for {len(sheets)} samples")
+
+    # -- figure: TG and DTG curves, coloured by family ----------------------
     family_of = dict(zip(labels["sheet"].astype(str), labels["family"]))
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))

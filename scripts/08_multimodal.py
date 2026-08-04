@@ -70,15 +70,20 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def dtg_curves(xlsx_path, sheets) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Return the temperature grid and the TG and DTG curves of each sample."""
-    curves = thermal.read_tg_curves(xlsx_path)
-    grid = np.linspace(T_MIN, T_MAX, N_T)
+def dtg_curves(sheets) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return the temperature grid and the TG and DTG curves of each sample.
+
+    Read from `data/processed/tg_curves.npz`, written by step 6, rather than
+    from the raw workbook: the workbook belongs to the laboratory that produced
+    it and is not redistributed with this repository.
+    """
+    stored = np.load(PROCESSED / "tg_curves.npz", allow_pickle=True)
+    grid = stored["temperature"]
+    order = {str(s): i for i, s in enumerate(stored["sheet"])}
 
     tg, dtg = [], []
     for sheet in sheets:
-        T, w = curves[sheet]
-        w_grid = np.interp(grid, T, w)
+        w_grid = stored["mass"][order[str(sheet)]]
         smooth = savgol_filter(w_grid, window_length=31, polyorder=3)
         rate = savgol_filter(-np.gradient(smooth, grid), window_length=31, polyorder=3)
         tg.append(smooth)
@@ -112,7 +117,7 @@ def main() -> None:
     families = labels["family"].to_numpy()
 
     ir_features = np.load(RESULTS / "fingerprint_images.npy")
-    grid, tg, dtg = dtg_curves(RAW / "Resultados Informe.xlsx", sheets)
+    grid, tg, dtg = dtg_curves(sheets)
 
     # -- the TG curve is topologically trivial; check rather than assume -----
     tg_sizes, dtg_sizes = [], []

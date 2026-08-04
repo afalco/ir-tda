@@ -8,3 +8,8 @@ venv/
 build/
 dist/
 .DS_Store
+
+# The characterisation workbook and its reference list belong to the laboratory
+# that produced the study and are not redistributed. See the README.
+data/raw/Resultados Informe.xlsx
+data/raw/references.txt
