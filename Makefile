@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression
+all: extract persistence cluster robustness sensitivity thermal regression multimodal
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -24,6 +24,9 @@ thermal:
 
 regression:
 	$(PYTHON) scripts/07_property_regression.py
+
+multimodal:
+	$(PYTHON) scripts/08_multimodal.py
 
 test:
 	$(PYTHON) -m pytest -q

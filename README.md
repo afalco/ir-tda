@@ -54,6 +54,22 @@ Three findings drive the report:
    descriptor is good at. Filler content, encoded in absorbance amplitude, it
    cannot capture at all.
 
+Separating the two polyurethanes, which infrared alone cannot do (ARI):
+
+| Representation | TPU vs PUR |
+|---|---|
+| Infrared, TFI | 0.10 |
+| DTG, TFI | 0.49 |
+| Infrared + DTG, TFI | 0.49 |
+| Control: raw DTG curve | **0.60** |
+| Control: the six conventional TG scalars | 0.22 |
+
+Combining the modalities adds nothing over the thermal one — a negative result,
+reported as such. But the persistence image of a DTG curve does separate them
+far better than the onset/peak/residue scalars a thermal analyst normally
+reports, so the shape of a decomposition profile carries information those
+scalars discard.
+
 ![robustness](figures/04_robustness.png)
 
 ## Layout
@@ -62,7 +78,7 @@ Three findings drive the report:
 data/raw/          instrument workbook and the supplier reference list
 data/processed/    resampled spectra and material labels (built by step 1)
 src/irtda/         the library
-scripts/           the seven pipeline steps
+scripts/           the eight pipeline steps
 tests/             unit tests for the persistence and image code
 results/           tables produced by the pipeline
 figures/           figures produced by the pipeline
@@ -109,7 +125,7 @@ library among them, since the persistence computation is implemented directly
 ### Running
 
 ```bash
-make                      # runs all seven steps, about two minutes
+make                      # runs all eight steps, about two minutes
 make test                 # 13 unit tests
 make clean                # removes everything the pipeline generates
 ```
@@ -124,6 +140,7 @@ python scripts/04_robustness.py           # stability under measurement artefact
 python scripts/05_sensitivity.py          # hyper-parameter sweep
 python scripts/06_thermal_targets.py      # TG/DTG curves -> processing-window targets
 python scripts/07_property_regression.py  # topology -> property prediction
+python scripts/08_multimodal.py           # combining the IR and DTG modalities
 ```
 
 Every step writes plain `.csv` / `.npy` / `.png` files, so intermediate results
