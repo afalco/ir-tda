@@ -1,0 +1,147 @@
+# Topological characterisation of shoe-sole materials from IR/ATR spectra
+
+Persistent homology applied to the infrared spectra of 39 composite materials
+(thermoplastic polyurethane, polyurethane, thermoplastic rubber, EVA, PVC and
+natural rubber) used in footwear soles.
+
+The method follows the persistence-image workflow developed by Frahi, Falcó,
+Chinesta and co-workers for rough surfaces, elastodynamic modes and robot
+trajectories, adapted here to one-dimensional vibrational spectra.
+
+Everything needed to reproduce the analysis is in this repository: the raw
+instrument workbook, the material labels, the library, the scripts and the
+figures they produce.
+
+## Results at a glance
+
+See [`docs/REPORT.md`](docs/REPORT.md) for the full discussion.
+
+| Representation | ARI | AMI |
+|---|---|---|
+| Persistence image (PI) | 0.27 | 0.37 |
+| Topological fingerprint image (TFI) | 0.37 | 0.52 |
+| Sliced Wasserstein + average linkage | 0.28 | 0.28 |
+| Baseline: raw spectra, no topology | 0.56 | 0.66 |
+
+*k*-means with *k* = 3 on the 35 TPU / PUR / TR samples, scored against the
+material families, which are never used to build the clusters.
+
+Two findings drive the report:
+
+1. **On clean data the raw spectra are hard to beat.** All 39 spectra come from
+   one instrument on one calibration, so they already match point by point and
+   the invariances that persistence buys are invariances to variation this data
+   set does not contain.
+2. **Under a wavenumber miscalibration the ordering reverses.** At a ±16 cm⁻¹
+   shift the raw spectra identify only 68 % of the materials while the
+   persistence image identifies 100 %, because the diagram of a
+   one-dimensional filtration does not depend on the parametrisation of the
+   axis at all. Topology is the right tool when spectra are pooled across
+   instruments, laboratories or calibrations.
+
+![robustness](figures/04_robustness.png)
+
+## Layout
+
+```
+data/raw/          instrument workbook and the supplier reference list
+data/processed/    resampled spectra and material labels (built by step 1)
+src/irtda/         the library
+scripts/           the five pipeline steps
+tests/             unit tests for the persistence and image code
+results/           tables produced by the pipeline
+figures/           figures produced by the pipeline
+docs/REPORT.md     methodology and discussion of the results
+```
+
+## Reproducing the analysis
+
+```bash
+pip install -r requirements.txt
+make                      # runs all five steps, about one minute
+make test                 # 13 unit tests
+```
+
+or step by step:
+
+```bash
+python scripts/01_extract_spectra.py      # workbook  -> spectra + labels
+python scripts/02_compute_persistence.py  # spectra   -> diagrams, images, distances
+python scripts/03_clustering.py           # features  -> clusters and scores
+python scripts/04_robustness.py           # stability under measurement artefacts
+python scripts/05_sensitivity.py          # hyper-parameter sweep
+```
+
+Every step writes plain `.csv` / `.npy` / `.png` files, so intermediate results
+can be inspected without rerunning what precedes them.
+
+## Method
+
+Each spectrum is treated as a filtration function on the wavenumber axis. The
+degree-0 persistence diagram of its superlevel-set filtration pairs every
+absorption band with the level at which it merges into a stronger neighbour, so
+that **the persistence of a feature is the topological prominence of a band**:
+how far the absorbance has to fall before that band stops being a separate
+component. This is exactly the local-maximum/local-minimum pairing described in
+*Tape surfaces characterization with persistence images*; for a signal sampled
+on a line the Vietoris–Rips construction used there for point clouds collapses
+to a union-find computation, which is implemented directly in
+`src/irtda/persistence.py` and needs no external topology library.
+
+Diagrams are then vectorised in two ways:
+
+- **PI**, the classical persistence image over `(birth, lifetime)`, weighted by
+  a linear ramp in the lifetime and integrated exactly over each pixel;
+- **TFI**, a *topological fingerprint image* over `(wavenumber, lifetime)`
+  introduced here, which keeps the prominence-based robustness of persistence
+  but restores the band positions.
+
+The second one exists because the invariance that makes persistence attractive
+for rough surfaces is a liability for spectroscopy: a persistence diagram does
+not change if the wavenumber axis is stretched or permuted, yet a band at
+1730 cm⁻¹ is an ester carbonyl whatever its height. Replacing the birth
+coordinate by the wavenumber of the generating maximum recovers that
+information, and it raises the ARI on the TPU/PUR/TR subset from 0.27 to 0.37.
+
+Diagrams are also compared directly with the sliced Wasserstein distance, used
+for the dendrogram and the MDS embedding.
+
+## Data
+
+`data/raw/Resultados Informe.xlsx` is the results workbook of the study
+*Caracterización de suelas de calzado* (Grupo de Investigación de Procesado y
+Pirólisis de Polímeros, Instituto Universitario de Ingeniería de Procesos
+Químicos, Universidad de Alicante, 2021). One worksheet per material reference;
+columns A and B hold the wavenumber [cm⁻¹] and the ATR absorbance. The
+worksheets also carry thermogravimetric and EGA/Py/GC/MS results, which this
+analysis does not use.
+
+`data/raw/references.txt` maps each reference number to its description and
+supplier; the material family is derived from the description by the patterns
+in `src/irtda/dataset.py`.
+
+Sheet `H4965` carries no reference number and is mapped to reference 47
+(TR "H49 65", Ruiz Alejos) on the strength of the grade name; this is the one
+label in the data set assigned by inference rather than read off the list.
+
+## References
+
+1. T. Frahi, C. Argerich, M. Yun, A. Falcó, A. Barasinski, F. Chinesta.
+   *Tape surfaces characterization with persistence images*.
+   AIMS Materials Science 7(4):364–380, 2020.
+2. T. Frahi, F. Chinesta, A. Falcó, A. Badias, E. Cueto, H. Y. Choi, M. Han,
+   J.-L. Duval. *Empowering Advanced Driver-Assistance Systems from Topological
+   Data Analysis*. Mathematics 9:634, 2021.
+3. T. Frahi, A. Falcó, B. Vinh Mau, J. L. Duval, F. Chinesta. *Empowering
+   Advanced Parametric Modes Clustering from Topological Data Analysis*.
+   Applied Sciences 11:6554, 2021.
+4. T. Frahi, A. Sancarlos, M. Galle, X. Beaulieu, A. Chambard, A. Falcó,
+   E. Cueto, F. Chinesta. *Monitoring Weeder Robots and Anticipating Their
+   Functioning by Using Advanced Topological Data Analysis*.
+   Frontiers in Artificial Intelligence 4:761123, 2021.
+5. M. Carrière, M. Cuturi, S. Oudot. *Sliced Wasserstein Kernel for Persistence
+   Diagrams*. ICML, 2017.
+
+## Licence
+
+MIT, see `LICENSE`.
