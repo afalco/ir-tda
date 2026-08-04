@@ -26,7 +26,15 @@ See [`docs/REPORT.md`](docs/REPORT.md) for the full discussion.
 *k*-means with *k* = 3 on the 35 TPU / PUR / TR samples, scored against the
 material families, which are never used to build the clusters.
 
-Two findings drive the report:
+Predicting thermogravimetric behaviour from the spectrum (leave-one-out *Q*²):
+
+| Target | PI | TFI | Family mean | Raw spectra |
+|---|---|---|---|---|
+| 5 % mass-loss temperature | 0.07 | **0.77** | 0.71 | 0.58 |
+| 50 % mass-loss temperature | 0.01 | 0.46 | **0.80** | 0.56 |
+| Residue at 800 °C | −0.37 | 0.49 | 0.71 | **0.88** |
+
+Three findings drive the report:
 
 1. **On clean data the raw spectra are hard to beat.** All 39 spectra come from
    one instrument on one calibration, so they already match point by point and
@@ -38,6 +46,13 @@ Two findings drive the report:
    one-dimensional filtration does not depend on the parametrisation of the
    axis at all. Topology is the right tool when spectra are pooled across
    instruments, laboratories or calibrations.
+3. **On one real task the topological descriptor wins outright.** The
+   fingerprint image predicts the onset of thermal degradation with *Q*² = 0.77
+   against 0.58 for the raw spectrum, a gap whose paired-bootstrap interval
+   excludes zero. The onset is set by the labile minor constituents, which show
+   up as moderately prominent bands — exactly what a prominence-weighted
+   descriptor is good at. Filler content, encoded in absorbance amplitude, it
+   cannot capture at all.
 
 ![robustness](figures/04_robustness.png)
 
@@ -47,7 +62,7 @@ Two findings drive the report:
 data/raw/          instrument workbook and the supplier reference list
 data/processed/    resampled spectra and material labels (built by step 1)
 src/irtda/         the library
-scripts/           the five pipeline steps
+scripts/           the seven pipeline steps
 tests/             unit tests for the persistence and image code
 results/           tables produced by the pipeline
 figures/           figures produced by the pipeline
@@ -94,7 +109,7 @@ library among them, since the persistence computation is implemented directly
 ### Running
 
 ```bash
-make                      # runs all five steps, about one minute
+make                      # runs all seven steps, about two minutes
 make test                 # 13 unit tests
 make clean                # removes everything the pipeline generates
 ```
@@ -107,6 +122,8 @@ python scripts/02_compute_persistence.py  # spectra   -> diagrams, images, dista
 python scripts/03_clustering.py           # features  -> clusters and scores
 python scripts/04_robustness.py           # stability under measurement artefacts
 python scripts/05_sensitivity.py          # hyper-parameter sweep
+python scripts/06_thermal_targets.py      # TG/DTG curves -> processing-window targets
+python scripts/07_property_regression.py  # topology -> property prediction
 ```
 
 Every step writes plain `.csv` / `.npy` / `.png` files, so intermediate results
