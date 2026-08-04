@@ -166,9 +166,11 @@ for the dendrogram and the MDS embedding.
 *Caracterización de suelas de calzado* (Grupo de Investigación de Procesado y
 Pirólisis de Polímeros, Instituto Universitario de Ingeniería de Procesos
 Químicos, Universidad de Alicante, 2021). One worksheet per material reference;
-columns A and B hold the wavenumber [cm⁻¹] and the ATR absorbance. The
-worksheets also carry thermogravimetric and EGA/Py/GC/MS results, which this
-analysis does not use.
+columns A and B hold the wavenumber [cm⁻¹] and the ATR absorbance, and a
+further block holds the thermogravimetric run on the same specimen (elapsed
+time, sample temperature, residual mass), from which step 6 derives the
+processing-window targets. The EGA/Py/GC/MS results in the same worksheets are
+not used.
 
 `data/raw/references.txt` maps each reference number to its description and
 supplier; the material family is derived from the description by the patterns
