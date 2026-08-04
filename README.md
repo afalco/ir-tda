@@ -1,6 +1,6 @@
 # Topological characterisation of shoe-sole materials from IR/ATR spectra
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21792711.svg)](https://doi.org/10.5281/zenodo.21792711)
+<!-- DOI badge goes here once the v1.1.0 release has been archived on Zenodo. -->
 
 Persistent homology applied to the infrared spectra of 39 composite materials
 (thermoplastic polyurethane, polyurethane, thermoplastic rubber, EVA, PVC and
@@ -236,15 +236,19 @@ label in the data set assigned by inference rather than read off the list.
 
 ## Citing this work
 
-The release that backs the accompanying manuscript is archived at
-<https://doi.org/10.5281/zenodo.21792711>. `CITATION.cff` carries the metadata,
-so GitHub's *Cite this repository* button produces a correct entry.
+The release that backs the accompanying manuscript is archived on Zenodo.
+`CITATION.cff` carries the metadata, so GitHub's *Cite this repository* button
+produces a correct entry.
 
 ```
 Falcó, A. (2026). ir-tda: topological descriptors of infrared spectra for
-formulated polymer compounds (v1.0.0). Zenodo.
-https://doi.org/10.5281/zenodo.21792711
+formulated polymer compounds (v1.1.0). Zenodo.
+https://doi.org/10.5281/zenodo.XXXXXXXX
 ```
+
+<!-- TODO: replace XXXXXXXX above, in CITATION.cff and in the badge at the top
+     of this file once the v1.1.0 release has been archived. -->
+
 
 ## Licence
 
