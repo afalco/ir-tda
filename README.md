@@ -1,5 +1,7 @@
 # Topological characterisation of shoe-sole materials from IR/ATR spectra
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21792711.svg)](https://doi.org/10.5281/zenodo.21792711)
+
 Persistent homology applied to the infrared spectra of 39 composite materials
 (thermoplastic polyurethane, polyurethane, thermoplastic rubber, EVA, PVC and
 natural rubber) used in footwear soles.
@@ -215,6 +217,20 @@ label in the data set assigned by inference rather than read off the list.
 5. M. Carrière, M. Cuturi, S. Oudot. *Sliced Wasserstein Kernel for Persistence
    Diagrams*. ICML, 2017.
 
+## Citing this work
+
+The release that backs the accompanying manuscript is archived at
+<https://doi.org/10.5281/zenodo.21792711>. `CITATION.cff` carries the metadata,
+so GitHub's *Cite this repository* button produces a correct entry.
+
+```
+Falcó, A. (2026). ir-tda: topological descriptors of infrared spectra for
+formulated polymer compounds (v1.0.0). Zenodo.
+https://doi.org/10.5281/zenodo.21792711
+```
+
 ## Licence
 
-MIT, see `LICENSE`.
+The code is MIT, see `LICENSE`. Note that the data in `data/raw/` came from a
+characterisation study carried out for a third party and its redistribution is
+subject to the terms agreed with its owners; the licence file states this.

@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software or the analysis it implements, please cite both the
+  archived release and the accompanying paper.
+title: >-
+  ir-tda: topological descriptors of infrared spectra for formulated polymer
+  compounds
+abstract: >-
+  Persistent homology applied to the IR/ATR spectra of 39 industrial footwear
+  sole compounds. Implements exact degree-0 persistence of the superlevel-set
+  filtration of a spectrum by union-find, the classical persistence image, and
+  a position-aware variant over wavenumber and lifetime, together with the
+  clustering, robustness, property-prediction and multimodal analyses reported
+  in the paper.
+type: software
+authors:
+  - given-names: Antonio
+    family-names: Falcó
+    email: afalco@uchceu.es
+    affiliation: >-
+      ESI Group International Chair, Departamento de Matemáticas, Física y
+      Ciencias Tecnológicas, Universidad Cardenal Herrera-CEU, CEU
+      Universities, Valencia, Spain
+    # orcid: 'https://orcid.org/0000-0000-0000-0000'   # TODO: add
+version: 1.0.0
+date-released: '2026-08-04'
+doi: 10.5281/zenodo.21792711
+license: MIT
+repository-code: 'https://github.com/afalco/ir-tda'
+keywords:
+  - topological data analysis
+  - persistent homology
+  - persistence images
+  - infrared spectroscopy
+  - polymer compounds
+  - material identification
