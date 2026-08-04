@@ -52,14 +52,51 @@ tests/             unit tests for the persistence and image code
 results/           tables produced by the pipeline
 figures/           figures produced by the pipeline
 docs/REPORT.md     methodology and discussion of the results
+environment.yml    conda environment
+requirements.txt   pip equivalent
 ```
 
 ## Reproducing the analysis
 
+### Environment
+
+With conda (recommended — it pins the interpreter as well as the libraries):
+
 ```bash
+git clone https://github.com/<user>/ir-tda.git
+cd ir-tda
+conda env create -f environment.yml
+conda activate ir-tda
+```
+
+`environment.yml` installs the package itself in editable mode, so `import
+irtda` works from anywhere in the environment. If you prefer mamba, substitute
+`mamba env create -f environment.yml`.
+
+With pip and a virtual environment instead:
+
+```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+pip install -e .
+```
+
+The scripts also run without installing the package at all — each one prepends
+`src/` to `sys.path` — so `pip install -r requirements.txt` on its own is
+enough to reproduce the figures. Installing is only needed to import `irtda`
+from a notebook or from your own code.
+
+Dependencies are the scientific-Python core: numpy, scipy, pandas,
+scikit-learn, matplotlib and openpyxl. There is deliberately no topology
+library among them, since the persistence computation is implemented directly
+(see [Method](#method)).
+
+### Running
+
+```bash
 make                      # runs all five steps, about one minute
 make test                 # 13 unit tests
+make clean                # removes everything the pipeline generates
 ```
 
 or step by step:
