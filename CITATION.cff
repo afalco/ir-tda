@@ -22,9 +22,9 @@ authors:
       Ciencias Tecnológicas, Universidad Cardenal Herrera-CEU, CEU
       Universities, Valencia, Spain
     # orcid: 'https://orcid.org/0000-0000-0000-0000'   # TODO: add
-version: 1.0.0
+version: 1.1.0
 date-released: '2026-08-04'
-doi: 10.5281/zenodo.21792711
+# doi: 10.5281/zenodo.XXXXXXXX   # TODO: add after the v1.1.0 release is archived
 license: MIT
 repository-code: 'https://github.com/afalco/ir-tda'
 keywords:

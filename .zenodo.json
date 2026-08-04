@@ -1,0 +1,29 @@
+{
+  "title": "ir-tda: topological descriptors of infrared spectra for formulated polymer compounds",
+  "upload_type": "software",
+  "license": "MIT",
+  "description": "<p>Persistent homology applied to the IR/ATR spectra of 39 industrial footwear sole compounds (thermoplastic polyurethane, polyurethane, thermoplastic rubber, EVA, PVC and natural rubber).</p><p>The library computes the exact degree-0 persistence diagram of the superlevel-set filtration of a spectrum by union-find, in which every point is one absorption band and its persistence is the band's topological prominence. It implements the classical persistence image and a position-aware variant over wavenumber and lifetime &mdash; the topological fingerprint image &mdash; which restores the chemical information that a one-dimensional persistence diagram discards by construction.</p><p>Eight numbered scripts reproduce every figure, table and number in the accompanying manuscript from a single command: spectrum extraction, unsupervised identification, robustness to instrumental artefacts, prediction of thermal processing properties, and multimodal infrared plus thermogravimetric descriptors. The processed spectra and thermogravimetric curves for the 39 compounds are included, so the analysis runs without the proprietary source workbook. Thirteen tests; a full run takes about two minutes.</p><p>The raw characterisation records are not redistributed: they belong to the laboratories that produced them.</p>",
+  "creators": [
+    {
+      "name": "Falcó, Antonio",
+      "affiliation": "ESI Group International Chair, Departamento de Matemáticas, Física y Ciencias Tecnológicas, Universidad Cardenal Herrera-CEU, CEU Universities, Valencia, Spain"
+    }
+  ],
+  "keywords": [
+    "topological data analysis",
+    "persistent homology",
+    "persistence images",
+    "infrared spectroscopy",
+    "vibrational spectroscopy",
+    "polymer compounds",
+    "material identification",
+    "thermogravimetric analysis"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/afalco/ir-tda",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
