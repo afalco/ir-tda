@@ -24,7 +24,7 @@ authors:
     # orcid: 'https://orcid.org/0000-0000-0000-0000'   # TODO: add
 version: 1.1.0
 date-released: '2026-08-04'
-# doi: 10.5281/zenodo.XXXXXXXX   # TODO: add after the v1.1.0 release is archived
+doi: 10.5281/zenodo.21795105
 license: MIT
 repository-code: 'https://github.com/afalco/ir-tda'
 keywords:
