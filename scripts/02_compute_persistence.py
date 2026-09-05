@@ -151,8 +151,8 @@ def main() -> None:
         "n_features_raw": raw_sizes,
         "n_features_kept": kept,
         "pruning_threshold": descriptors.thresholds,
-        "total_persistence": [float((d[:, 1] - d[:, 0]).sum()) for d in diagrams],
-        "max_persistence": [float((d[:, 1] - d[:, 0]).max()) for d in diagrams],
+        "total_persistence": [float(persistence.persistence_of(d).sum()) for d in diagrams],
+        "max_persistence": [float(persistence.persistence_of(d).max()) for d in diagrams],
     }).to_csv(RESULTS / "diagram_summary.csv", index=False)
 
     print(f"\nwritten to {RESULTS}")

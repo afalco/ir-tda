@@ -11,7 +11,7 @@ import numpy as np
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
 
-from .persistence import lifetime_diagram
+from .persistence import lifetime_diagram, persistence_of
 
 __all__ = [
     "plot_spectra_by_family",
@@ -74,20 +74,23 @@ def plot_diagram(wavenumber, intensity, diagram, title, path, n_annotate=8):
     axes[0].set_ylabel("normalised absorbance")
     axes[0].set_title("spectrum")
 
-    persistence = diagram[:, 1] - diagram[:, 0]
+    # Superlevel-set diagrams are expressed in the units of the spectrum, so
+    # birth is the band height, death < birth is the merging level, and the
+    # points lie below the diagonal.
+    lifetimes = persistence_of(diagram)
     lo = min(diagram[:, 0].min(), diagram[:, 1].min())
     hi = max(diagram[:, 0].max(), diagram[:, 1].max())
     axes[1].plot([lo, hi], [lo, hi], color="#bbbbbb", lw=1)
-    axes[1].scatter(diagram[:, 0], diagram[:, 1], s=8, c=persistence,
+    axes[1].scatter(diagram[:, 0], diagram[:, 1], s=8, c=lifetimes,
                     cmap="viridis", zorder=3)
-    axes[1].set_xlabel("birth")
-    axes[1].set_ylabel("death")
+    axes[1].set_xlabel(r"birth $b$  (band height)")
+    axes[1].set_ylabel(r"death $d$  (merging level)")
     axes[1].set_title(f"persistence diagram ({len(diagram)} features)")
 
     lt = lifetime_diagram(diagram)
     axes[2].scatter(lt[:, 0], lt[:, 1], s=8, c=lt[:, 1], cmap="viridis")
-    axes[2].set_xlabel("birth")
-    axes[2].set_ylabel("lifetime")
+    axes[2].set_xlabel(r"birth $b$")
+    axes[2].set_ylabel(r"lifetime $\ell = b - d$")
     axes[2].set_title("lifetime diagram")
 
     fig.suptitle(title)
