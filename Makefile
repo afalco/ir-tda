@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -47,6 +47,10 @@ alignment:
 	          --adaptive --suffix " [adaptive]"
 	$(PYTHON) scripts/10c_confounders.py
 	$(PYTHON) scripts/10b_alignment_figure.py
+
+# The processing statement: the prediction expressed as a moulding decision.
+window:
+	$(PYTHON) scripts/11_moulding_window.py
 
 test:
 	$(PYTHON) -m pytest -q
