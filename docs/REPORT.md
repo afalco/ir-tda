@@ -117,17 +117,20 @@ random partition. **The labels never enter the clustering.**
 | TPU/PUR/TR (n=35, k=3) | PI, *k*-means | 0.274 | 0.369 | 0.238 |
 | | TFI, *k*-means | 0.373 | 0.515 | 0.356 |
 | | sliced Wasserstein, average linkage | 0.285 | 0.282 | 0.289 |
-| | baseline: raw spectra, *k*-means | **0.558** | **0.662** | 0.660 |
+| | baseline: raw spectra, *k*-means | 0.558 | 0.662 | 0.660 |
+| | control: peaks, position + prominence | 0.537 | 0.487 | 0.344 |
+| | **control: Savitzky–Golay 2nd derivative** | **1.000** | **1.000** | 0.411 |
 
-Three things are worth reading out of this table.
+The last two rows were added by the controls of steps 9 and 10 and change what
+the first four mean. Four things are worth reading out of the table.
 
 **TR separates perfectly, and every method finds it.** All seven thermoplastic
 rubbers form one cluster containing nothing else, under every representation.
 They are the only non-polyurethane family with replicates, and they are
 unambiguous.
 
-**The TPU/PUR boundary is where everything fails, and that is chemically
-expected.** Both families are polyurethanes; TPU is the thermoplastic form and
+**The TPU/PUR boundary defeats every topological representation — but not the
+chemistry.** Both families are polyurethanes; TPU is the thermoplastic form and
 PUR the cast or expanded form of the same chemistry. Their infrared spectra are
 dominated by the same N–H, C=O and C–O–C bands. The TFI contingency table
 
@@ -141,6 +144,33 @@ shows a real but partial separation. The baseline does not separate them either;
 it simply splits PUR in two and keeps TPU intact, which happens to score better
 without corresponding to a cleaner chemical distinction.
 
+An earlier version of this report concluded from this that the two polyurethanes
+are not separable by infrared at all. That was wrong, and the correction is
+instructive: overlapping bands are what derivative spectroscopy exists to
+resolve. A *k*-means on the second Savitzky–Golay derivative with SNV recovers
+the three families with replicates **exactly** — all 18 TPU in one cluster, all
+10 PUR in a second, all 7 TR in a third, ARI 1.000. What the separation takes is
+a filter that sharpens the shoulders on the shared carbonyl and amide bands, and
+neither the absorbance values nor a descriptor built from band prominences
+supplies it.
+
+A result that clean on 35 industrial samples invites the suspicion that
+something other than chemistry is being recovered, and `10c_confounders.py`
+rules the alternatives out. The material family is partly confounded with the
+supplier who delivered the batch, but the partition agrees with the family at
+1.000 and with the supplier at 0.439 — exactly the agreement the family itself
+has with the supplier, so the clustering carries no supplier structure of its
+own. Decisively, each family stays intact across the suppliers that delivered
+it: TPU from Urban (12) and Pekes (6) in one cluster, PUR from Analco (8) and
+Cicasa (2) in another, TR from Pekes (3), Ruiz Alejos (2) and Urban (2) in a
+third. A batch effect cannot produce that. Colour is not the driver either —
+within the TPU cluster the batches are black, clear, natural and tan, and the
+agreement between partition and colour is 0.059. Nor is the result tuned: the
+second derivative gives ARI 1.000 over ten of the twelve filter settings tried,
+window lengths 7 to 31 and polynomial orders 2 and 3, falling back only at the
+widest window, which smooths past a band width. The first derivative does not
+separate the polyurethanes at any setting.
+
 **Adding position to the diagram helps, in the way predicted.** On the
 TPU/PUR/TR subset the TFI raises the ARI from 0.274 to 0.373 and the AMI from
 0.369 to 0.515 over the classical persistence image. The improvement survives
@@ -152,9 +182,12 @@ reported above is not the product of a search.
 
 ![sensitivity](../figures/05_sensitivity.png)
 
-**The raw spectra win on this data set.** A *k*-means on 3 600 SNV-corrected
-absorbance values scores 0.56, well above every topological descriptor. This
-deserves a direct explanation rather than a hedge, and §5 gives one.
+**The raw spectra win on this data set, and a derivative filter wins by more.**
+A *k*-means on 3 600 SNV-corrected absorbance values scores 0.56, well above
+every topological descriptor; the second-derivative chain scores 1.000. On the
+identification task the topological descriptors are simply not competitive, and
+we do not claim it for them. §5 explains why the raw spectra do so well here,
+and §7 removes the compensating argument this report used to offer.
 
 ![dendrogram](../figures/03_dendrogram.png)
 
@@ -194,10 +227,14 @@ after the artefact.
 spectra identify 68 % of the materials; the persistence image identifies 100 %,
 and does so at every amplitude tested, because the diagram is exactly invariant
 under reparametrisation of the axis. The TFI holds 99 %: it gives up strict
-invariance in exchange for chemical information and loses almost nothing. This
-is the regime the method was designed for — spectra pooled across instruments,
-laboratories or calibrations — and in it topology is not a marginal improvement
-but a categorical one.
+invariance in exchange for chemical information and loses almost nothing.
+
+This report used to call that a categorical advantage and the regime the method
+was designed for. Two qualifications, both established in §7, withdraw the
+claim. The stability is not topological — conventional peak descriptors built by
+the same vectorisation are equally stable — and the comparison is against a
+point-by-point match that has received no treatment, which is not what a
+spectroscopist would run.
 
 **Additive noise is where the topological descriptors are genuinely weak.**
 Averaging over 3 600 channels suppresses white noise, so the raw spectra barely
@@ -214,7 +251,169 @@ noisy enough should be smoothed before its topology is computed.
 Baseline drift and the intensity envelope fall in between, with the TFI tracking
 the baseline closely on the former and both trailing on the latter.
 
-## 6. Conclusions
+## 6. Is the fingerprint more than a peak table?
+
+The comparisons above are all against absorbance values. That is not the
+demanding one. The fingerprint image attaches a prominence to the wavenumber of
+each band, and a spectroscopist reaching for the same information would run a
+peak picker and tabulate position, intensity, width, area and prominence.
+`09_peak_features.py` settles whether persistent homology contributes anything
+that table does not already have, at the level of the features rather than by
+adding models.
+
+The control is built to differ in one respect only: every conventional
+descriptor is a marked point set `(position, attribute)` pushed through the
+*same* imager, the same anisotropic kernel, the same resolution and the same ramp
+weighting as the fingerprint image.
+
+**The two feature sets are the same set.** At matched thresholds 98.9 % of the
+topological features coincide with a detected peak, and on 95.9 % of the 2 709
+interior bands the degree-0 persistence equals the reported prominence to
+machine precision. This is not a coincidence of these data: topographic
+prominence is what degree-0 persistence of a superlevel-set filtration
+specialises to on a line. The two part company in exactly two places — the
+essential class, which the filtration pairs with min *f* and the peak picker does
+not produce at all, and bands whose prominence base runs into the end of the
+measured range, where the picker truncates at the array bound and the filtration
+continues to the merging saddle.
+
+![peak features](../figures/09_peak_features.png)
+
+**Prominence is the attribute that carries the signal.** On the onset of
+degradation, position alone predicts nothing (*Q*² = −0.22) and neither width
+nor area recovers the property; attaching the prominence reaches 0.72 against
+0.77 for the fingerprint image. A paired bootstrap places the fingerprint image
+above every control with an interval excluding zero — against position alone
+Δ*Q*² = 0.99, intensity 0.21, width 0.83, area 0.36, raw spectra 0.19 — with one
+exception. Against position with prominence, Δ*Q*² = 0.051, [−0.054, 0.118],
+above zero in 84 % of resamples. The two are not distinguishable.
+
+On identification the conventional route is the better of the two: position with
+prominence reaches ARI 0.537 against 0.373. Taken together, what the comparison
+establishes is that *prominence at a position* is the representation this problem
+wants — demonstrated against the four other conventional attributes with the
+vectorisation held fixed — and not that the topological route to it extracts
+something the peak table misses. What persistent homology supplies is that
+quantity computed exactly, with no detection threshold to choose, and with the
+boundary and the global maximum handled by definition rather than by truncation.
+Over twenty settings of the picker's thresholds, spanning 19 to 102 detected
+peaks per spectrum, its onset *Q*² moves within [0.695, 0.744] and its ARI within
+[0.406, 0.537]: a real dependence, and a more modest one than we expected.
+
+## 7. Against the treatment the spectra would actually receive
+
+Every comparison so far is against absorbance values that have received nothing
+but an SNV correction. `10_alignment.py` repeats the retrieval experiment with
+the chain each artefact calls for: Savitzky–Golay first and second derivatives,
+an asymmetric-least-squares baseline followed by SNV, extended multiplicative
+scatter correction, a rigid alignment of each query estimated by
+cross-correlation, a piecewise alignment in the spirit of interval-correlation-
+optimised shifting, and the modulus of the Fourier transform, which is invariant
+to a rigid shift by construction.
+
+Alignment is given more than it would have in practice: each query is aligned to
+the library spectrum it is compared with, one pair at a time, so every
+comparison is made at its own optimal shift. No analyst has that much
+information.
+
+![alignment](../figures/10_alignment.png)
+
+| Representation | shift | drift | noise | envelope | worst case |
+|---|---|---|---|---|---|
+| raw spectra (SNV) | 0.79 | 0.51 | 1.00 | 0.45 | 0.45 |
+| raw, aligned rigidly | 0.99 | 0.50 | 1.00 | 0.45 | 0.45 |
+| raw, aligned by interval | 0.97 | 0.48 | 0.98 | 0.44 | 0.44 |
+| Savitzky–Golay 1st derivative | 0.38 | 1.00 | 0.90 | 0.92 | 0.38 |
+| Savitzky–Golay 2nd derivative | 0.22 | 1.00 | 0.86 | 0.96 | 0.22 |
+| ALS baseline + SNV | 0.67 | 1.00 | 0.92 | 0.76 | **0.67** |
+| EMSC | 0.72 | 1.00 | 0.99 | 0.53 | 0.53 |
+| Fourier magnitude | 1.00 | 0.06 | 1.00 | 0.32 | 0.06 |
+| peaks, position + prominence | 0.97 | 0.40 | 0.10 | 0.27 | 0.10 |
+| fingerprint image | 0.97 | 0.50 | 0.32 | 0.18 | 0.18 |
+
+The table does not support the claim §5 was written to make. Aligning the query
+restores the point-by-point comparison to 0.99 at ±16 cm⁻¹, and the Fourier
+magnitude reaches 1.00 at every amplitude, against 0.97 for the fingerprint
+image. Under a baseline drift the derivative and baseline-correction chains
+retrieve every material at every amplitude while the fingerprint image falls to
+0.50: degree-0 persistence is invariant to an additive constant, not to a curved
+drift, and a baseline correction removes the drift outright. Under noise and
+under a variable contact pressure the topological descriptors are the weakest of
+all. **The general claim of robustness is not sustainable, and we withdraw it.**
+
+What survives is narrower. No single conventional chain is uniformly good: the
+second derivative is perfect against a drift and a contact-pressure envelope and
+collapses to 0.22 under a miscalibration, while the Fourier magnitude does the
+reverse. Each is the right answer to the artefact it was chosen for, and
+choosing it requires knowing which artefact is present. The band-based
+descriptors need no such choice — but with a worst case of 0.18 they are not the
+representation to reach for when the artefact is unknown either. On this
+evidence the honest recommendation for a library assembled across instruments is
+an alignment step or a baseline correction, chosen for the acquisition
+conditions at hand.
+
+## 8. From a coefficient of determination to a moulding decision
+
+A *Q*² is not a processing statement. What a converter needs from the onset is
+the highest temperature at which a compound can be formed without beginning to
+decompose, and what a predictor of it is worth is measured in degrees of usable
+processing window. `11_moulding_window.py` and `12_conformal_margin.py` make the
+translation.
+
+The admissible temperature is the predicted onset less a margin that absorbs the
+prediction error. Taking that margin as an empirical quantile of the
+leave-one-out residual does not work at this sample size: asked for a 5 % risk of
+over-heating it delivers 7.7 %, and asked for 1 % it delivers 5.1 %. The tail is
+estimated from two or three points. Replacing it with the one-sided jackknife+
+bound of Barber, Candès, Ramdas and Tibshirani (2021), which guarantees
+P(*T*₅ > *L*(*x*)) ≥ 1 − 2α in finite samples with no assumption on the residual
+distribution or on the regression method, brings the realised risk to 2.6 % —
+one compound of 39 — for every representation.
+
+![moulding window](../figures/11_moulding_window.png)
+
+| Representation | mean abs. error | empirical quantile | realised | jackknife+ | realised |
+|---|---|---|---|---|---|
+| family mean | 10.8 °C | 22.6 | 7.7 % | 26.5 | 2.6 % |
+| raw spectra (SNV) | 11.4 °C | 23.4 | 5.1 % | 46.3 | 0.0 % |
+| Savitzky–Golay 2nd derivative | 10.1 °C | 21.1 | 7.7 % | 68.9 | 2.6 % |
+| peaks, position + prominence | **8.9 °C** | 13.5 | 7.7 % | **24.3** | 2.6 % |
+| fingerprint image | 9.0 °C | 14.7 | 7.7 % | 24.6 | 2.6 % |
+
+A paired bootstrap puts the margin returned by the fingerprint image over the
+family mean at 1.96 °C, [1.08, 2.86], above zero in every resample. **Two
+degrees of moulding temperature, certified**, is what a spectrum buys over
+knowing the polymer class — less than the eight the uncalibrated rule suggested,
+and unlike it a number that can be relied on. Applying the rule over process
+temperatures from 210 to 315 °C, the decision is correct 85.8 % of the time
+against 80.4 % for the family mean; the class-only rule never admits a compound
+that degrades but needlessly rejects 168 compound–temperature pairs against 117.
+
+Two further observations. The second-derivative chain has the second best
+typical error and by far the worst certified margin, because the margin is set by
+the lower tail of the residual: identification and prediction are not won by the
+same representation, and a pre-processing chain chosen on identification
+performance would be the wrong choice here. And the gain is concentrated where
+the construction predicts — largest for TPU, the family with the widest internal
+spread of onset (51.5 °C), where the mean absolute error falls from 11.5 to
+7.9 °C; marginal for PUR; negative for TR, whose members differ little. The
+descriptor separates *formulations within a polymer class*, not classes from each
+other, which is also the task §4 shows it loses.
+
+One limit is worth recording rather than burying. The jackknife+ bound needs the
+⌊α(*m*+1)⌋-th order statistic of *m* = 38 candidates; at α = 0.025 that index is
+zero, so the bound degenerates to the smallest candidate. A distribution-free
+5 % guarantee needs α ≥ 1/39, a nominal risk of 5.1 %: this data set is one
+compound short of certifying the figure it is asked for, and every jackknife+
+margin above is the most conservative the construction can give.
+
+A permutation test settles the prior question. Permuting the onsets and
+repeating the whole leave-one-out procedure 300 times, the fingerprint image
+reaches *Q*² = 0.773 against a null whose 95th percentile is −0.011, *p* = 0.003
+— the smallest value 300 permutations can return. Whatever the descriptors are
+reading, it is not noise.
+
+## 9. Conclusions
 
 1. The persistent-homology workflow of Frahi *et al.* transfers to IR spectra
    with a considerable simplification: for a one-dimensional filtration the
@@ -225,16 +424,39 @@ the baseline closely on the former and both trailing on the latter.
 3. The classical persistence image discards band positions, and for
    spectroscopy that is the wrong invariance. The position-aware variant
    proposed here (TFI) raises the ARI from 0.27 to 0.37 on the polyurethane /
-   rubber subset and is insensitive to its hyper-parameters.
-4. On clean, single-instrument data the raw spectra remain the stronger
-   representation. Under a wavenumber miscalibration the ordering reverses
-   decisively (1.00 against 0.68 at ±16 cm⁻¹). The case for topology here is
-   robustness to acquisition conditions, not accuracy in nominal ones.
-5. TR is cleanly separable from the polyurethanes by every method. TPU and PUR
-   are not cleanly separable by any of them, which is what the chemistry
-   predicts.
+   rubber subset and is insensitive to its hyper-parameters. What the restored
+   position buys is a band prominence located on the wavenumber axis; a
+   conventional peak table carrying the same two quantities performs the same.
+4. Persistent homology and a peak picker return the same quantity. Degree-0
+   persistence of a superlevel-set filtration is topographic prominence, and on
+   96 % of interior bands the two agree to machine precision. What the
+   filtration adds is that the quantity is obtained exactly, without a detection
+   threshold, and with the boundary and the global maximum handled by
+   definition — not information the peak table lacks. Among the conventional
+   attributes, prominence is the one that carries the signal.
+5. On clean, single-instrument data the raw spectra remain the stronger
+   representation, and a second-derivative chain is stronger still. The
+   robustness that this report previously offered in compensation does not hold:
+   aligning the query restores the point-by-point comparison under a
+   miscalibration, and across the four artefacts a baseline correction has the
+   best worst case (0.67) and the fingerprint image nearly the worst (0.18). We
+   claim no general robustness.
+6. TR is cleanly separable from the polyurethanes by every method. **TPU and PUR
+   are separable too, and by infrared**: a second Savitzky–Golay derivative
+   recovers the three families with replicates exactly, stable over the filter
+   settings and attributable neither to the supplier nor to the colour of the
+   batches. The earlier conclusion that their shared chemistry makes them
+   indistinguishable was a limitation of the representations tried, not of the
+   measurement.
+7. Expressed as a processing decision with a margin that carries a finite-sample
+   guarantee, the onset prediction is worth about two degrees of moulding
+   temperature over knowing the polymer class — 1.96 °C, [1.08, 2.86] — and the
+   resulting decision is right 85.8 % of the time against 80.4 %. The gain is
+   concentrated in TPU, the family whose onset varies most between grades: the
+   descriptor separates formulations within a class rather than classes from one
+   another.
 
-## 7. Limitations and next steps
+## 10. Limitations and next steps
 
 - **39 samples, one spectrum each.** No replicates, so within-material
   variability cannot be estimated and supervised classification is not
@@ -248,10 +470,20 @@ the baseline closely on the former and both trailing on the latter.
 - **Only degree-0 homology is used.** Embedding the spectrum as a point cloud
   in the plane, or by time-delay embedding, would give H₁ features; whether
   loops in such an embedding carry chemical meaning is an open question.
-- **The multi-modal route is untouched.** Persistence diagrams of the TG and
-  DTG curves in the same workbook could be concatenated with the spectral ones,
-  which is the natural way to separate TPU from PUR where infrared alone
-  cannot.
+- **Multi-modal fusion adds nothing here.** Persistence diagrams of the DTG
+  curve concatenated with the spectral ones reproduce the DTG partition exactly
+  and are slightly worse on the full set. The motivation for trying it — that
+  infrared alone cannot separate TPU from PUR — has in any case been withdrawn.
+- **The reference set is one compound short of a distribution-free 5 %
+  guarantee.** The jackknife+ margin needs the ⌊α(*m*+1)⌋-th order statistic of
+  *m* = 38 candidates, which at α = 0.025 does not exist. A modestly larger set
+  would tighten every margin reported in §8.
+- **A follow-up that would test the mechanism.** §8 attributes the gain to the
+  prominence of bands belonging to the labile fraction, which varies between
+  grades of one polymer while the backbone does not. A campaign acquiring a
+  series of TPU grades of one base polymer with controlled plasticiser content,
+  with replicate spectra per grade and thermogravimetry on the same specimens,
+  would confirm or refute it.
 
 ## References
 
@@ -272,3 +504,12 @@ the baseline closely on the former and both trailing on the latter.
    Diagrams*. ICML, 2017.
 6. I. Blasco López, A. F. Marcilla Gomis. *Caracterización de suelas de
    calzado*. Informe final, Universidad de Alicante, 2021.
+7. P. Virtanen *et al.* *SciPy 1.0: fundamental algorithms for scientific
+   computing in Python*. Nature Methods 17:261–272, 2020.
+   doi:10.1038/s41592-019-0686-2 — the peak picker used as the control in §6.
+8. P. H. C. Eilers, H. F. M. Boelens. *Baseline correction with asymmetric
+   least squares smoothing*. Technical report, Leiden University Medical
+   Centre, 2005 — the baseline correction of §7.
+9. R. F. Barber, E. J. Candès, A. Ramdas, R. J. Tibshirani. *Predictive
+   inference with the jackknife+*. The Annals of Statistics 49(1):486–507,
+   2021. doi:10.1214/20-AOS1965 — the certified margin of §8.
