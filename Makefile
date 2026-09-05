@@ -45,6 +45,7 @@ alignment:
 	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "intensity envelope"
 	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "additive noise" \
 	          --adaptive --suffix " [adaptive]"
+	$(PYTHON) scripts/10c_confounders.py
 	$(PYTHON) scripts/10b_alignment_figure.py
 
 test:
