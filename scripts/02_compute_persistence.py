@@ -125,10 +125,14 @@ def main() -> None:
     # -- figures -------------------------------------------------------------
     for row in (0, len(diagrams) // 2):
         meta = labels.iloc[row]
+        # The first column of the fingerprint diagram is the wavenumber of the
+        # maximum generating each feature, row-aligned with the pruned diagram.
+        birth_wavenumber = descriptors.fingerprints[row][:, 0]
         plotting.plot_diagram(
             wavenumber, intensity[row], diagrams[row],
-            f"sheet {meta['sheet']} -- {meta['family']} -- {meta['description']}",
+            f"sample {meta['sheet']} -- {meta['family']} -- {meta['description_en']}",
             FIGURES / f"02_diagram_{meta['sheet']}.png",
+            birth_wavenumber=birth_wavenumber,
         )
 
     order = labels.sort_values(["family", "sheet"]).index.to_numpy()[:12]
