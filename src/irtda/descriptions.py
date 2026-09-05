@@ -17,6 +17,10 @@ proper nouns and must not be translated. Rendering the parsed fields in English
 adjective-noun order gives idiomatic text rather than the word-by-word
 substitution a lookup table would produce.
 
+One class of token is dropped rather than carried through: the brand of the
+footwear company that supplied a batch, which names a customer and not a
+material. The source ``description`` keeps the study's text unaltered.
+
 The translation is deliberately mechanical and total: :func:`translate` raises
 on any Spanish word it does not know, so that a description added later cannot
 silently reach a figure in the wrong language.
@@ -79,6 +83,12 @@ MATERIALS: dict[str, str] = {
 
 # Function words carrying no information once the fields are reordered.
 STOPWORDS = {"de", "del", "la", "el", "los", "las", "y"}
+
+# Brands of the footwear companies that supplied the batches, as opposed to the
+# grade designations of the compounds themselves. They identify a customer
+# rather than a material and are dropped from the published rendering; the
+# ``description`` column keeps the source study's text unaltered.
+DROP_BRANDS = frozenset({"pikolinos"})
 
 # Multi-word constructions, matched before the token pass.
 PHRASES: list[tuple[re.Pattern[str], str]] = [
@@ -162,6 +172,9 @@ def translate(description: str) -> str:
             if key not in COLOURS:
                 raise UnknownTerm(f"unknown colour {key!r} in {description!r}")
             colour = COLOURS[key]
+            continue
+
+        if folded in DROP_BRANDS:
             continue
 
         # Anything left must look like a designation rather than a Spanish word.
