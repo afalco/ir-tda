@@ -230,9 +230,12 @@ def test_descriptions_are_translated_into_english():
         "9 muestras PVC negro": "9 black PVC samples",
         "3 planchas caucho marrón LATEX": "3 brown rubber sheets, LATEX",
         "6 planchas EVA negro MII relleno": "6 black EVA sheets, MII, filled",
-        # Everything after "marcada como" is a quoted trade name, kept verbatim.
+        # Everything after "marcada como" is a quoted trade name, kept verbatim,
+        # except the supplying company's own brand, which names a customer.
         "2 Planchas C/gris marcada como Hi-react PU Pikolinos":
-            "2 grey sheets, labelled Hi-react PU Pikolinos",
+            "2 grey sheets, labelled Hi-react PU",
+        "2 Planchas C/crudo marcada como Hi-react PU Pikolinos":
+            "2 natural sheets, labelled Hi-react PU",
     }
     for spanish, english in cases.items():
         assert descriptions.translate(spanish) == english
