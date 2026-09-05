@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -34,6 +34,18 @@ multimodal:
 peaks:
 	$(PYTHON) scripts/09_peak_features.py
 	$(PYTHON) scripts/09b_peak_figure.py
+
+# Pre-processing and alignment baselines. The noise artefact is run twice, with
+# the fixed and the adaptive pruning threshold, since Sect. 5 prescribes the
+# adaptive one for exactly that case.
+alignment:
+	$(PYTHON) scripts/10_alignment.py --parts B --targets T5
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "wavenumber shift"
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "baseline drift"
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "intensity envelope"
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "additive noise" \
+	          --adaptive --suffix " [adaptive]"
+	$(PYTHON) scripts/10b_alignment_figure.py
 
 test:
 	$(PYTHON) -m pytest -q
