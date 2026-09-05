@@ -37,41 +37,84 @@ Predicting thermogravimetric behaviour from the spectrum (leave-one-out *Q*²):
 | 50 % mass-loss temperature | 0.01 | 0.46 | **0.80** | 0.56 |
 | Residue at 800 °C | −0.37 | 0.49 | 0.71 | **0.88** |
 
-Three findings drive the report:
+Five findings drive the report. The last two were established by the controls in
+steps 9 to 12 and correct earlier conclusions of this work; they are stated here
+rather than in a footnote because they narrow what the descriptor can be claimed
+to do.
 
 1. **On clean data the raw spectra are hard to beat.** All 39 spectra come from
    one instrument on one calibration, so they already match point by point and
    the invariances that persistence buys are invariances to variation this data
    set does not contain.
-2. **Under a wavenumber miscalibration the ordering reverses.** At a ±16 cm⁻¹
-   shift the raw spectra identify only 68 % of the materials while the
-   persistence image identifies 100 %, because the diagram of a
-   one-dimensional filtration does not depend on the parametrisation of the
-   axis at all. Topology is the right tool when spectra are pooled across
-   instruments, laboratories or calibrations.
-3. **On one real task the topological descriptor wins outright.** The
-   fingerprint image predicts the onset of thermal degradation with *Q*² = 0.77
-   against 0.58 for the raw spectrum, a gap whose paired-bootstrap interval
-   excludes zero. The onset is set by the labile minor constituents, which show
-   up as moderately prominent bands — exactly what a prominence-weighted
-   descriptor is good at. Filler content, encoded in absorbance amplitude, it
-   cannot capture at all.
+2. **On one task the topological descriptor leads.** The fingerprint image
+   predicts the onset of thermal degradation with *Q*² = 0.77 against 0.58 for
+   the raw spectrum, 0.67 for a second-derivative chain and 0.67 for a baseline
+   correction; the paired-bootstrap interval against the raw spectrum excludes
+   zero, and a permutation test puts it far beyond its null (*p* = 0.003). The
+   onset is set by the labile minor constituents, which show up as moderately
+   prominent bands — exactly what a prominence-weighted descriptor reads. Filler
+   content, encoded in absorbance amplitude, it cannot capture at all.
+3. **Persistence and a peak table carry the same quantity.** Degree-0
+   persistence of a superlevel-set filtration is the topographic prominence a
+   peak picker reports: at matched thresholds 98.9 % of the topological features
+   coincide with a detected peak, and on 96 % of interior bands the two values
+   agree to machine precision. A conventional peak table carrying position and
+   prominence reaches *Q*² = 0.72 on the onset, statistically indistinguishable
+   from the fingerprint image (Δ*Q*² = 0.05, [−0.05, 0.12]). What persistence
+   supplies is that quantity computed exactly and with no detection threshold,
+   not information the peak table lacks. Among the conventional attributes it is
+   prominence that carries the signal: position alone, intensity, width and area
+   are all clearly worse.
+4. **The robustness is not topological.** Under a ±16 cm⁻¹ miscalibration the
+   untreated raw spectra retrieve 0.79 and the band-based descriptors 0.97, but
+   aligning the query by cross-correlation restores the raw spectra to 0.99 and
+   a shift-invariant Fourier magnitude reaches 1.00. Across all four artefacts
+   the worst case is 0.67 for a baseline correction with SNV and 0.18 for the
+   fingerprint image. No general claim of robustness survives.
+5. **The two polyurethanes are separable by infrared after all.** A
+   Savitzky–Golay second derivative with SNV recovers TPU, PUR and TR exactly by
+   *k*-means (ARI 1.000), stable over ten of twelve filter settings and
+   attributable neither to the supplier who delivered each batch nor to its
+   colour — each family stays in one cluster across two or three different
+   suppliers. An earlier version of this work concluded the opposite.
 
-Separating the two polyurethanes, which infrared alone cannot do (ARI):
+Separating the two polyurethanes (ARI):
 
 | Representation | TPU vs PUR |
 |---|---|
 | Infrared, TFI | 0.10 |
 | DTG, TFI | 0.49 |
 | Infrared + DTG, TFI | 0.49 |
-| Control: raw DTG curve | **0.60** |
+| Control: raw DTG curve | 0.60 |
 | Control: the six conventional TG scalars | 0.22 |
+| **Control: infrared, Savitzky–Golay 2nd derivative** | **1.00** |
 
-Combining the modalities adds nothing over the thermal one — a negative result,
-reported as such. But the persistence image of a DTG curve does separate them
-far better than the onset/peak/residue scalars a thermal analyst normally
-reports, so the shape of a decomposition profile carries information those
-scalars discard.
+Combining the infrared and thermal modalities adds nothing over the thermal one
+— a negative result, reported as such. The persistence image of a DTG curve does
+separate the two polyurethanes far better than the onset/peak/residue scalars a
+thermal analyst normally reports, so the shape of a decomposition profile
+carries information those scalars discard. But the cleanest separation of all
+comes from the infrared spectrum with an ordinary derivative filter, which is
+what the last row records.
+
+The onset prediction expressed as a processing decision rather than as a *Q*²,
+with a margin that carries a finite-sample guarantee (jackknife+; realised risk
+2.6 % against a 5 % nominal):
+
+| Representation | mean abs. error | certified margin |
+|---|---|---|
+| Family mean | 10.8 °C | 26.5 °C |
+| Raw spectra (SNV) | 11.4 °C | 46.3 °C |
+| Savitzky–Golay 2nd derivative | 10.1 °C | 68.9 °C |
+| Peaks, position + prominence | **8.9 °C** | **24.3 °C** |
+| Fingerprint image | 9.0 °C | 24.6 °C |
+
+Two degrees of moulding temperature returned over knowing the polymer class
+(1.96 °C, [1.08, 2.86]) — certified, where an uncalibrated empirical quantile
+suggested eight and delivered a 7.7 % risk when asked for 5 %. Note that the
+second-derivative chain has the second best typical error and by far the worst
+certified margin: the margin is set by the lower tail of the residual, and
+identification and prediction are not won by the same representation.
 
 ![robustness](figures/04_robustness.png)
 
@@ -80,10 +123,16 @@ scalars discard.
 ```
 data/raw/          where the instrument workbook goes; not redistributed
 data/processed/    resampled spectra, TG curves and labels — enough to rerun
-                   steps 2 to 8 without the workbook
-src/irtda/         the library
-scripts/           the eight pipeline steps
-tests/             unit tests for the persistence and image code
+                   steps 2 to 12 without the workbook
+src/irtda/         the library: persistence, images, clustering, dataset,
+                   features, thermal, plotting, plus descriptions (English
+                   rendering of the Spanish batch labels), peaks (conventional
+                   peak descriptors, the control of step 9) and preprocess
+                   (derivative, baseline, scatter-correction and alignment
+                   baselines, the controls of step 10)
+scripts/           the fifteen pipeline steps
+tests/             unit tests for the persistence, image, description, peak
+                   and pre-processing code
 results/           tables produced by the pipeline
 figures/           figures produced by the pipeline
 docs/REPORT.md     methodology and discussion of the results
@@ -129,9 +178,20 @@ library among them, since the persistence computation is implemented directly
 ### Running
 
 ```bash
-make                      # runs all eight steps, about two minutes
-make test                 # 13 unit tests
+make                      # runs every step, a few minutes
+make test                 # 28 unit tests
 make clean                # removes everything the pipeline generates
+```
+
+or by stage:
+
+```bash
+make extract persistence            # workbook -> spectra, diagrams, images
+make cluster robustness sensitivity
+make thermal regression multimodal
+make peaks                          # controlled comparison against peak tables
+make alignment                      # pre-processing and alignment baselines
+make window conformal               # the moulding decision and its guarantee
 ```
 
 or step by step:
@@ -145,7 +205,19 @@ python scripts/05_sensitivity.py          # hyper-parameter sweep
 python scripts/06_thermal_targets.py      # TG/DTG curves -> processing-window targets
 python scripts/07_property_regression.py  # topology -> property prediction
 python scripts/08_multimodal.py           # combining the IR and DTG modalities
+python scripts/09_peak_features.py        # is the fingerprint more than a peak table?
+python scripts/09b_peak_figure.py         #   ... and its figure
+python scripts/10_alignment.py            # pre-processing and alignment baselines
+python scripts/10c_confounders.py         # batch effects behind the derivative result
+python scripts/10b_alignment_figure.py    #   ... and its figure
+python scripts/11_moulding_window.py      # the prediction as a moulding decision
+python scripts/12_conformal_margin.py     # a safety margin with a guarantee
 ```
+
+Steps 9 and 10 are the long ones. Both take `--parts`, and step 9 also
+`--targets` while step 10 takes `--artefacts`, so an expensive stage can be run
+one target or one artefact at a time; each invocation adds its rows to the same
+table rather than overwriting it.
 
 Every step writes plain `.csv` / `.npy` / `.png` files, so intermediate results
 can be inspected without rerunning what precedes them.
