@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -27,6 +27,30 @@ regression:
 
 multimodal:
 	$(PYTHON) scripts/08_multimodal.py
+
+# The controlled comparison against conventional peak descriptors. Parts B and
+# D are the expensive ones; they can be run a target or an artefact at a time
+# with --targets / --artefacts, and each invocation adds its rows to the table.
+peaks:
+	$(PYTHON) scripts/09_peak_features.py
+	$(PYTHON) scripts/09b_peak_figure.py
+
+# Pre-processing and alignment baselines. The noise artefact is run twice, with
+# the fixed and the adaptive pruning threshold, since Sect. 5 prescribes the
+# adaptive one for exactly that case.
+alignment:
+	$(PYTHON) scripts/10_alignment.py --parts B --targets T5
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "wavenumber shift"
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "baseline drift"
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "intensity envelope"
+	$(PYTHON) scripts/10_alignment.py --parts D --artefacts "additive noise" \
+	          --adaptive --suffix " [adaptive]"
+	$(PYTHON) scripts/10c_confounders.py
+	$(PYTHON) scripts/10b_alignment_figure.py
+
+# The processing statement: the prediction expressed as a moulding decision.
+window:
+	$(PYTHON) scripts/11_moulding_window.py
 
 test:
 	$(PYTHON) -m pytest -q
