@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -27,6 +27,13 @@ regression:
 
 multimodal:
 	$(PYTHON) scripts/08_multimodal.py
+
+# The controlled comparison against conventional peak descriptors. Parts B and
+# D are the expensive ones; they can be run a target or an artefact at a time
+# with --targets / --artefacts, and each invocation adds its rows to the table.
+peaks:
+	$(PYTHON) scripts/09_peak_features.py
+	$(PYTHON) scripts/09b_peak_figure.py
 
 test:
 	$(PYTHON) -m pytest -q

@@ -258,3 +258,84 @@ def test_every_description_in_the_data_set_is_translatable():
         pytest.skip("data/processed/labels.csv not present")
     for text in pd.read_csv(path)["description"]:
         assert descriptions.translate(text)
+
+
+# ---------------------------------------------------------------------------
+# Conventional peak descriptors (the control of Sect. 9)
+# ---------------------------------------------------------------------------
+def test_peak_table_recovers_gaussian_width_and_area():
+    """Width and area are exact on a profile whose values are known."""
+    from irtda import peaks
+
+    wavenumber = np.linspace(500, 4000, 3600)
+    centres, heights, sigmas = (1730.0, 2900.0, 1100.0), (1.0, 0.6, 0.35), (12.0, 25.0, 40.0)
+    f = np.zeros_like(wavenumber)
+    for c, h, s in zip(centres, heights, sigmas):
+        f += h * np.exp(-((wavenumber - c) ** 2) / (2 * s**2))
+
+    table = peaks.peak_table(f, wavenumber, peaks.PeakConfig(prominence=1e-3))
+    assert len(table) == 3
+
+    order = np.argsort(table.position)
+    fwhm = 2 * np.sqrt(2 * np.log(2))
+    expected_width = fwhm * np.array(sigmas)
+    expected_position = np.array(centres)
+    # The area is integrated over one full width either side of the maximum,
+    # which captures erf(fwhm / sqrt 2) of a Gaussian.
+    from scipy.special import erf
+    captured = erf(fwhm / np.sqrt(2))
+    expected_area = np.array(heights) * np.array(sigmas) * np.sqrt(2 * np.pi) * captured
+
+    by_position = np.argsort(expected_position)
+    assert table.position[order] == pytest.approx(expected_position[by_position], abs=1.0)
+    assert table.width[order] == pytest.approx(expected_width[by_position], rel=1e-3)
+    assert table.area[order] == pytest.approx(expected_area[by_position], rel=1e-2)
+
+
+def test_prominence_and_persistence_agree_on_an_interior_band():
+    """Degree-0 persistence is the topographic prominence the peak picker reports.
+
+    They are the same quantity, which is the point of the control: what the
+    topological construction supplies is not a different number but the same
+    one, computed exactly and without a detection threshold.
+    """
+    from irtda import peaks
+
+    wavenumber = np.linspace(0.0, 100.0, 1001)
+    #  a dominant band, a lesser one beside it, and a shoulder on the lesser
+    f = (1.0 * np.exp(-((wavenumber - 50) ** 2) / 8)
+         + 0.6 * np.exp(-((wavenumber - 62) ** 2) / 8)
+         + 0.2 * np.exp(-((wavenumber - 70) ** 2) / 4))
+
+    diagram, born_at, _ = persistence.superlevel_persistence(f, return_locations=True)
+    topological = persistence.position_lifetime_diagram(diagram, born_at, wavenumber)
+    table = peaks.peak_table(f, wavenumber, peaks.PeakConfig(prominence=1e-6))
+
+    for position, lifetime in topological:
+        j = int(np.argmin(np.abs(table.position - position)))
+        if abs(table.position[j] - position) > 1e-9:
+            continue
+        # The essential class is the exception: the peak picker bounds its
+        # search at the ends of the array, the filtration does not.
+        if lifetime == pytest.approx(f.max() - f.min()):
+            continue
+        assert lifetime == pytest.approx(table.prominence[j], abs=1e-9)
+
+
+def test_attribute_diagram_has_the_shape_the_imager_consumes():
+    from irtda import images, peaks
+
+    wavenumber = np.linspace(500, 4000, 800)
+    f = np.exp(-((wavenumber - 1700) ** 2) / 400) + 0.4 * np.exp(-((wavenumber - 2900) ** 2) / 900)
+    table = peaks.peak_table(f, wavenumber, peaks.PeakConfig(prominence=1e-3))
+
+    for attribute in peaks.ATTRIBUTES:
+        diagram = peaks.attribute_diagram(table, attribute)
+        assert diagram.shape == (len(table), 2)
+        assert (diagram[:, 1] >= 0).all()
+        imager = images.PersistenceImager(resolution=8)
+        imager.fit([diagram])
+        assert imager.transform_one(diagram).size == 64
+
+    with pytest.raises(ValueError):
+        peaks.attribute_diagram(table, "curvature")

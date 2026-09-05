@@ -69,6 +69,8 @@ _reg = __import__("07_property_regression")
 _rob = __import__("04_robustness")
 
 TARGETS = ["T5", "T10", "T50", "T_dtg_peak", "residue"]
+_ARTEFACT_NAMES = ["baseline drift", "wavenumber shift",
+                   "additive noise", "intensity envelope"]
 
 #: Conventional descriptors, in reporting order. The label is what appears in
 #: the tables of the manuscript.
@@ -88,7 +90,27 @@ def parse_args() -> argparse.Namespace:
                    help="random draws averaged per artefact level")
     p.add_argument("--parts", default="ABCDE",
                    help="subset of the five analyses to run")
+    p.add_argument("--targets", default=",".join(TARGETS),
+                   help="comma-separated regression targets for part B")
+    p.add_argument("--artefacts", default=",".join(_ARTEFACT_NAMES),
+                   help="comma-separated artefacts for part D")
     return p.parse_args()
+
+
+def _append(frame: pd.DataFrame, path: Path) -> None:
+    """Add rows to a results file, replacing any earlier run of the same keys.
+
+    Parts B and D are expensive enough to be run one target or one artefact at
+    a time, so each invocation contributes its rows to the same table rather
+    than overwriting it.
+    """
+    if path.exists():
+        previous = pd.read_csv(path)
+        keys = [c for c in ("target", "artefact", "representation", "model", "level")
+                if c in frame.columns and c in previous.columns]
+        merged = pd.concat([previous, frame], ignore_index=True)
+        frame = merged.drop_duplicates(subset=keys, keep="last")
+    frame.to_csv(path, index=False)
 
 
 # ---------------------------------------------------------------------------
@@ -236,7 +258,7 @@ def main() -> None:
     if "B" in args.parts:
         print("\nB. prediction of the thermogravimetric targets")
         rows, predictions = [], {}
-        for target in TARGETS:
+        for target in args.targets.split(","):
             y_all = targets[target].to_numpy(dtype=float)
             keep = np.isfinite(y_all)
             y = y_all[keep]
@@ -254,13 +276,12 @@ def main() -> None:
                         and r["model"] != "-"), key=lambda r: r["Q2"])
             print(f"  {target:11s} best {best['representation']:20s} "
                   f"{best['model']:5s} Q2={best['Q2']:6.3f}")
-        table = pd.DataFrame(rows)
-        table.to_csv(RESULTS / "peak_regression.csv", index=False)
+        _append(pd.DataFrame(rows), RESULTS / "peak_regression.csv")
 
         # Paired bootstrap of the fingerprint image against every control, on
         # the target for which the manuscript claims an advantage.
         comparisons = []
-        for target in ("T5",):
+        for target in [t for t in args.targets.split(",") if t == "T5"]:
             for model in ("ridge",):
                 y, tfi_hat = predictions[(target, "TFI", model)]
                 for name in representations:
@@ -273,9 +294,11 @@ def main() -> None:
                         delta_Q2=float(_reg.scores(y, tfi_hat)["Q2"]
                                        - _reg.scores(y, other)["Q2"]),
                         lo=lo, hi=hi, p_above_zero=above))
-        pd.DataFrame(comparisons).to_csv(
-            RESULTS / "peak_regression_bootstrap.csv", index=False)
-        print("\n  paired bootstrap, TFI against each control on T5 (ridge):")
+        if comparisons:
+            _append(pd.DataFrame(comparisons),
+                    RESULTS / "peak_regression_bootstrap.csv")
+        if comparisons:
+            print("\n  paired bootstrap, TFI against each control on T5 (ridge):")
         for c in comparisons:
             print(f"    vs {c['against']:22s} dQ2={c['delta_Q2']:+.3f}  "
                   f"[{c['lo']:+.3f}, {c['hi']:+.3f}]  P(>0)={c['p_above_zero']:.3f}")
@@ -301,7 +324,8 @@ def main() -> None:
         rng = np.random.default_rng(args.seed)
         reference = {name: X for name, X in representations.items()}
         rows = []
-        for artefact, meta in _rob.ARTEFACTS.items():
+        for artefact in args.artefacts.split(","):
+            meta = _rob.ARTEFACTS[artefact]
             for level in _rob.LEVELS:
                 amplitude = level * meta["scale"]
                 scores = {name: [] for name in representations}
@@ -331,7 +355,7 @@ def main() -> None:
                 print(f"  {artefact:19s} level {level:.2f}  " + "  ".join(
                     f"{n.split(':')[-1].strip()[:9]}={np.mean(v):.2f}"
                     for n, v in scores.items()))
-        pd.DataFrame(rows).to_csv(RESULTS / "peak_robustness.csv", index=False)
+        _append(pd.DataFrame(rows), RESULTS / "peak_robustness.csv")
 
     # -- E ------------------------------------------------------------------
     if "E" in args.parts:
