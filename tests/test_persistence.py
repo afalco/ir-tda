@@ -339,3 +339,59 @@ def test_attribute_diagram_has_the_shape_the_imager_consumes():
 
     with pytest.raises(ValueError):
         peaks.attribute_diagram(table, "curvature")
+
+
+# ---------------------------------------------------------------------------
+# Pre-processing and alignment (the baselines of Sect. 10)
+# ---------------------------------------------------------------------------
+def _two_band_spectrum(wavenumber):
+    return (np.exp(-((wavenumber - 1700) ** 2) / 800)
+            + 0.6 * np.exp(-((wavenumber - 2900) ** 2) / 2000))
+
+
+def test_als_removes_a_curved_baseline():
+    from irtda import preprocess
+
+    wavenumber = np.linspace(500, 4000, 3600)
+    clean = _two_band_spectrum(wavenumber)
+    drift = 0.3 * ((wavenumber - wavenumber[0]) / (wavenumber[-1] - wavenumber[0])) ** 2
+
+    corrected_clean = preprocess.als_baseline(clean[None, :])[0]
+    corrected_drifted = preprocess.als_baseline((clean + drift)[None, :])[0]
+    # The correction maps both to the same signal: the drift is gone.
+    assert np.abs(corrected_clean - corrected_drifted).max() < 1e-3
+
+
+def test_cross_correlation_alignment_undoes_a_rigid_shift():
+    from irtda import preprocess
+
+    wavenumber = np.linspace(500, 4000, 3600)
+    clean = _two_band_spectrum(wavenumber)
+    for shift in (4.0, 8.0, 16.0):
+        moved = np.interp(wavenumber, wavenumber + shift, clean)
+        before = np.abs(moved - clean).max()
+        after = np.abs(preprocess.align_global(moved, clean) - clean).max()
+        assert after < before / 10.0
+
+
+def test_fourier_magnitude_is_shift_invariant():
+    from irtda import preprocess
+
+    wavenumber = np.linspace(500, 4000, 3600)
+    clean = _two_band_spectrum(wavenumber)
+    moved = np.interp(wavenumber, wavenumber + 12.0, clean)
+    a = preprocess.fourier_magnitude(clean[None, :])
+    b = preprocess.fourier_magnitude(moved[None, :])
+    assert np.abs(a - b).max() / a.max() < 1e-3
+
+
+def test_every_chain_returns_one_row_per_spectrum():
+    from irtda import preprocess
+
+    wavenumber = np.linspace(500, 4000, 1000)
+    X = np.vstack([_two_band_spectrum(wavenumber),
+                   _two_band_spectrum(wavenumber) * 0.7 + 0.05])
+    for name, chain in preprocess.CHAINS.items():
+        out = chain(X, wavenumber)
+        assert out.shape[0] == 2, name
+        assert np.isfinite(out).all(), name
