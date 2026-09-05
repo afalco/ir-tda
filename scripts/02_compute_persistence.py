@@ -125,10 +125,14 @@ def main() -> None:
     # -- figures -------------------------------------------------------------
     for row in (0, len(diagrams) // 2):
         meta = labels.iloc[row]
+        # The first column of the fingerprint diagram is the wavenumber of the
+        # maximum generating each feature, row-aligned with the pruned diagram.
+        birth_wavenumber = descriptors.fingerprints[row][:, 0]
         plotting.plot_diagram(
             wavenumber, intensity[row], diagrams[row],
-            f"sheet {meta['sheet']} -- {meta['family']} -- {meta['description']}",
+            f"sample {meta['sheet']} -- {meta['family']} -- {meta['description_en']}",
             FIGURES / f"02_diagram_{meta['sheet']}.png",
+            birth_wavenumber=birth_wavenumber,
         )
 
     order = labels.sort_values(["family", "sheet"]).index.to_numpy()[:12]
@@ -151,8 +155,8 @@ def main() -> None:
         "n_features_raw": raw_sizes,
         "n_features_kept": kept,
         "pruning_threshold": descriptors.thresholds,
-        "total_persistence": [float((d[:, 1] - d[:, 0]).sum()) for d in diagrams],
-        "max_persistence": [float((d[:, 1] - d[:, 0]).max()) for d in diagrams],
+        "total_persistence": [float(persistence.persistence_of(d).sum()) for d in diagrams],
+        "max_persistence": [float(persistence.persistence_of(d).max()) for d in diagrams],
     }).to_csv(RESULTS / "diagram_summary.csv", index=False)
 
     print(f"\nwritten to {RESULTS}")

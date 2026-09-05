@@ -11,7 +11,7 @@ import numpy as np
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
 
-from .persistence import lifetime_diagram
+from .persistence import lifetime_diagram, persistence_of
 
 __all__ = [
     "plot_spectra_by_family",
@@ -64,30 +64,79 @@ def plot_spectra_by_family(wavenumber, intensity, families, path):
     plt.close(fig)
 
 
-def plot_diagram(wavenumber, intensity, diagram, title, path, n_annotate=8):
-    """Spectrum, its persistence diagram and its lifetime diagram, side by side."""
-    fig, axes = plt.subplots(1, 3, figsize=(13, 3.6))
+def plot_diagram(wavenumber, intensity, diagram, title, path,
+                 birth_wavenumber=None, n_annotate=6):
+    """Spectrum, its persistence diagram and its lifetime diagram, side by side.
 
-    axes[0].plot(wavenumber, intensity, lw=0.7, color="#333333")
+    The ``n_annotate`` most persistent features are numbered and given a common
+    colour in all three panels, so that the correspondence between an absorption
+    band, the point of the persistence diagram it generates and the point of the
+    lifetime diagram it becomes can be followed by eye. In the spectrum the
+    feature is drawn as a vertical bar spanning its prominence, from the merging
+    level ``d`` up to the band height ``b``.
+
+    Parameters
+    ----------
+    birth_wavenumber
+        Wavenumber of the maximum generating each feature, aligned row by row
+        with ``diagram`` --- the first column of the position-lifetime diagram.
+        Without it the panels are drawn unnumbered.
+    """
+    fig, axes = plt.subplots(1, 3, figsize=(11.5, 3.4))
+
+    # Superlevel-set diagrams are expressed in the units of the spectrum, so
+    # birth is the band height, death < birth is the merging level, and the
+    # points lie below the diagonal.
+    lifetimes = persistence_of(diagram)
+    lt = lifetime_diagram(diagram)
+
+    marked = np.empty(0, dtype=int)
+    if birth_wavenumber is not None and len(diagram):
+        marked = np.argsort(-lifetimes)[: min(n_annotate, len(diagram))]
+    palette = plt.get_cmap("tab10")
+    colour = {int(k): palette(i % 10) for i, k in enumerate(marked)}
+
+    def annotate(ax, x, y, rank, feature, offset=(0, 6), ha="center"):
+        ax.annotate(str(rank), (x, y), textcoords="offset points",
+                    xytext=offset, ha=ha, va="center", fontsize=11,
+                    weight="bold", color=colour[feature])
+
+    # -- spectrum ------------------------------------------------------------
+    axes[0].plot(wavenumber, intensity, lw=0.7, color="#333333", zorder=2)
+    for rank, k in enumerate(marked, start=1):
+        k = int(k)
+        nu, b, d = birth_wavenumber[k], diagram[k, 0], diagram[k, 1]
+        axes[0].vlines(nu, d, b, color=colour[k], lw=2.0, zorder=3)
+        axes[0].plot([nu], [b], "o", ms=4.5, color=colour[k], zorder=4)
+        annotate(axes[0], nu, b, rank, k, offset=(0, 9))
     axes[0].invert_xaxis()
     axes[0].set_xlabel("wavenumber [cm$^{-1}$]")
     axes[0].set_ylabel("normalised absorbance")
     axes[0].set_title("spectrum")
 
-    persistence = diagram[:, 1] - diagram[:, 0]
+    # -- persistence diagram -------------------------------------------------
     lo = min(diagram[:, 0].min(), diagram[:, 1].min())
     hi = max(diagram[:, 0].max(), diagram[:, 1].max())
-    axes[1].plot([lo, hi], [lo, hi], color="#bbbbbb", lw=1)
-    axes[1].scatter(diagram[:, 0], diagram[:, 1], s=8, c=persistence,
-                    cmap="viridis", zorder=3)
-    axes[1].set_xlabel("birth")
-    axes[1].set_ylabel("death")
+    axes[1].plot([lo, hi], [lo, hi], color="#bbbbbb", lw=1, zorder=1)
+    axes[1].scatter(diagram[:, 0], diagram[:, 1], s=8, color="#9aa0a6", zorder=2)
+    for rank, k in enumerate(marked, start=1):
+        k = int(k)
+        b, d = diagram[k, 0], diagram[k, 1]
+        axes[1].vlines(b, d, b, color=colour[k], lw=0.8, ls=":", zorder=3)
+        axes[1].plot([b], [d], "o", ms=6.5, color=colour[k], zorder=4)
+        annotate(axes[1], b, d, rank, k, offset=(10, -1), ha="left")
+    axes[1].set_xlabel(r"birth $b$  (band height)")
+    axes[1].set_ylabel(r"death $d$  (merging level)")
     axes[1].set_title(f"persistence diagram ({len(diagram)} features)")
 
-    lt = lifetime_diagram(diagram)
-    axes[2].scatter(lt[:, 0], lt[:, 1], s=8, c=lt[:, 1], cmap="viridis")
-    axes[2].set_xlabel("birth")
-    axes[2].set_ylabel("lifetime")
+    # -- lifetime diagram ----------------------------------------------------
+    axes[2].scatter(lt[:, 0], lt[:, 1], s=8, color="#9aa0a6", zorder=2)
+    for rank, k in enumerate(marked, start=1):
+        k = int(k)
+        axes[2].plot([lt[k, 0]], [lt[k, 1]], "o", ms=6.5, color=colour[k], zorder=4)
+        annotate(axes[2], lt[k, 0], lt[k, 1], rank, k, offset=(0, 10))
+    axes[2].set_xlabel(r"birth $b$")
+    axes[2].set_ylabel(r"lifetime $\ell = b - d$")
     axes[2].set_title("lifetime diagram")
 
     fig.suptitle(title)
