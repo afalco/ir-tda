@@ -21,7 +21,7 @@ authors:
       ESI Group International Chair, Departamento de Matemáticas, Física y
       Ciencias Tecnológicas, Universidad Cardenal Herrera-CEU, CEU
       Universities, Valencia, Spain
-    # orcid: 'https://orcid.org/0000-0000-0000-0000'   # TODO: add
+    orcid: 'https://orcid.org/0000-0001-6225-0935'
 version: 1.1.0
 date-released: '2026-08-04'
 doi: 10.5281/zenodo.21795105
