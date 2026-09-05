@@ -219,16 +219,35 @@ def main() -> None:
     ax.legend(fontsize=7, frameon=False, ncol=2)
 
     ax = axes[1]
+    # Both constructions, since the empirical quantile does not deliver its
+    # nominal risk and the comparison between them is the point.
+    conformal_path = RESULTS / "conformal_margin.csv"
     names = list(margins.representation)
-    ax.barh(np.arange(len(names)), margins.margin_5,
-            color=["#0046a0" if n == "Fingerprint image" else "#b05800"
-                   for n in names])
+    y_pos = np.arange(len(names))
+    height = 0.38
+    ax.barh(y_pos - height / 2, margins.margin_5, height=height,
+            color="#c9a227", label="empirical quantile")
+    if conformal_path.exists():
+        conformal = (pd.read_csv(conformal_path)
+                     .query("nominal_risk == 0.05")
+                     .set_index("representation")
+                     .reindex(names))
+        ax.barh(y_pos + height / 2, conformal.conformal_margin, height=height,
+                color=["#0046a0" if n == "Fingerprint image" else "#b05800"
+                       for n in names],
+                label=r"jackknife$+$, guaranteed")
+        for i, value in enumerate(conformal.conformal_margin):
+            ax.text(value + 0.8, i + height / 2, f"{value:.0f}", va="center",
+                    fontsize=7.5)
     for i, value in enumerate(margins.margin_5):
-        ax.text(value + 0.6, i, f"{value:.0f}", va="center", fontsize=8)
-    ax.set_yticks(range(len(names)), names, fontsize=8)
+        ax.text(value + 0.8, i - height / 2, f"{value:.0f}", va="center",
+                fontsize=7.5, color="#7a6410")
+    ax.set_yticks(y_pos, names, fontsize=8)
     ax.invert_yaxis()
-    ax.set_xlabel(r"margin at 5% risk [$^\circ$C]")
+    ax.set_xlabel(r"margin at $5\,\%$ nominal risk [$^\circ$C]")
     ax.set_title("(b) processing window surrendered to uncertainty", fontsize=10)
+    ax.legend(fontsize=7.5, frameon=False, loc="upper center",
+              bbox_to_anchor=(0.5, -0.14), ncol=2)
 
     ax = axes[2]
     width = 0.38

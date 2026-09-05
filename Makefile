@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -50,6 +50,13 @@ alignment:
 
 # The processing statement: the prediction expressed as a moulding decision.
 window:
+	$(PYTHON) scripts/11_moulding_window.py
+
+# The margin with a finite-sample guarantee, plus the bootstrap on the gain and
+# the permutation test. Run after `window`: the figure of step 11 reads the
+# conformal margins written here.
+conformal:
+	$(PYTHON) scripts/12_conformal_margin.py
 	$(PYTHON) scripts/11_moulding_window.py
 
 test:
