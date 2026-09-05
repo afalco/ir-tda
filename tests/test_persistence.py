@@ -1,5 +1,7 @@
 """Correctness checks for the persistence computation and its vectorisation."""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -215,3 +217,41 @@ def test_sliced_wasserstein_is_invariant_under_the_sign_convention():
     assert clustering.wasserstein(a, b) == pytest.approx(
         clustering.wasserstein(-a, -b), rel=1e-9
     )
+
+
+def test_descriptions_are_translated_into_english():
+    """Every Spanish batch description of the study renders in English."""
+    from irtda import descriptions
+
+    cases = {
+        "5 planchas PUR negro BK sin lavar": "5 black PUR sheets, BK, unwashed",
+        "8 pares TR marrón CLO/7922/65": "8 brown TR pairs, CLO/7922/65",
+        "4 Planchas de Eva amarillo": "4 yellow EVA sheets",
+        "9 muestras PVC negro": "9 black PVC samples",
+        "3 planchas caucho marrón LATEX": "3 brown rubber sheets, LATEX",
+        "6 planchas EVA negro MII relleno": "6 black EVA sheets, MII, filled",
+        # Everything after "marcada como" is a quoted trade name, kept verbatim.
+        "2 Planchas C/gris marcada como Hi-react PU Pikolinos":
+            "2 grey sheets, labelled Hi-react PU Pikolinos",
+    }
+    for spanish, english in cases.items():
+        assert descriptions.translate(spanish) == english
+
+
+def test_translation_refuses_an_unknown_spanish_word():
+    """A description added later cannot reach a figure untranslated."""
+    from irtda import descriptions
+
+    with pytest.raises(descriptions.UnknownTerm):
+        descriptions.translate("5 planchas TPU verde XYZ")
+
+
+def test_every_description_in_the_data_set_is_translatable():
+    import pandas as pd
+    from irtda import descriptions
+
+    path = Path(__file__).resolve().parents[1] / "data/processed/labels.csv"
+    if not path.exists():                       # data not extracted yet
+        pytest.skip("data/processed/labels.csv not present")
+    for text in pd.read_csv(path)["description"]:
+        assert descriptions.translate(text)

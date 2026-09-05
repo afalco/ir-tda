@@ -10,6 +10,8 @@ import numpy as np
 import openpyxl
 import pandas as pd
 
+from . import descriptions
+
 # Common resampling grid. Every worksheet in the source workbook covers
 # approximately 499-4000 cm^-1; this range is shared by all of them.
 WAVENUMBER_MIN = 500.0
@@ -132,6 +134,7 @@ def load_workbook_spectra(
                 "sheet": sheet_name,
                 "reference": number,
                 "description": description,
+                "description_en": descriptions.translate(description),
                 "supplier": supplier,
                 "family": assign_family(description),
                 "n_points_raw": len(k),
