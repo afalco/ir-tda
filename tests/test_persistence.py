@@ -395,3 +395,56 @@ def test_every_chain_returns_one_row_per_spectrum():
         out = chain(X, wavenumber)
         assert out.shape[0] == 2, name
         assert np.isfinite(out).all(), name
+
+
+# ---------------------------------------------------------------------------
+# The Vietoris-Rips control of Sect. 13
+# ---------------------------------------------------------------------------
+def test_rips_point_cloud_respects_the_aspect_ratio():
+    from irtda import rips
+
+    wavenumber = np.linspace(500, 4000, 2000)
+    intensity = np.exp(-((wavenumber - 1700) ** 2) / 4000)
+    for aspect in (0.5, 1.0, 4.0):
+        cloud = rips.point_cloud(intensity, wavenumber,
+                                 rips.RipsConfig(aspect=aspect, n_points=200))
+        assert cloud.shape == (200, 2)
+        assert cloud[:, 0].min() == pytest.approx(0.0)
+        assert cloud[:, 0].max() == pytest.approx(aspect, rel=1e-3)
+        assert 0.0 <= cloud[:, 1].min() and cloud[:, 1].max() <= 1.0
+
+
+def test_betti_curve_counts_the_features_alive():
+    from irtda import rips
+
+    #                     born  dies
+    diagram = np.array([[0.0, 2.0],
+                        [1.0, 3.0],
+                        [1.5, 1.8]])
+    grid = np.array([-0.5, 0.5, 1.2, 1.6, 1.9, 2.5, 3.5])
+    expected = [0, 1, 2, 3, 2, 1, 0]
+    assert list(rips.betti_curve(diagram, grid)) == pytest.approx(expected)
+    assert list(rips.betti_curve(np.empty((0, 2)), grid)) == pytest.approx([0] * 7)
+
+
+def test_rips_diagrams_are_finite_and_h1_depends_on_the_aspect():
+    """The dependence on the axis ratio is the point of the comparison."""
+    ripser = pytest.importorskip("ripser")
+
+    wavenumber = np.linspace(500, 4000, 1200)
+    rng = np.random.default_rng(0)
+    intensity = np.zeros_like(wavenumber)
+    for centre in (900.0, 1400.0, 1700.0, 2900.0, 3300.0):
+        intensity += rng.uniform(0.3, 1.0) * np.exp(
+            -((wavenumber - centre) ** 2) / 2000.0)
+    intensity /= intensity.max()
+
+    from irtda import rips
+
+    counts = []
+    for aspect in (0.2, 5.0):
+        diagrams = rips.rips_diagrams(
+            intensity, wavenumber, rips.RipsConfig(aspect=aspect, n_points=200))
+        assert all(np.isfinite(d).all() for d in diagrams)
+        counts.append(len(diagrams[1]))
+    assert counts[0] != counts[1]

@@ -37,7 +37,7 @@ Predicting thermogravimetric behaviour from the spectrum (leave-one-out *Q*²):
 | 50 % mass-loss temperature | 0.01 | 0.46 | **0.80** | 0.56 |
 | Residue at 800 °C | −0.37 | 0.49 | 0.71 | **0.88** |
 
-Five findings drive the report. The last two were established by the controls in
+Six findings drive the report. The last two were established by the controls in
 steps 9 to 12 and correct earlier conclusions of this work; they are stated here
 rather than in a footnote because they narrow what the descriptor can be claimed
 to do.
@@ -71,7 +71,17 @@ to do.
    a shift-invariant Fourier magnitude reaches 1.00. Across all four artefacts
    the worst case is 0.67 for a baseline correction with SNV and 0.18 for the
    fingerprint image. No general claim of robustness survives.
-5. **The two polyurethanes are separable by infrared after all.** A
+5. **The Vietoris–Rips pipeline of the literature loses on these data.**
+   Implemented as described — each spectral sample a point of the plane, a
+   Vietoris–Rips filtration, Betti curves — it reaches *Q*² = 0.14 on the onset
+   and ARI 0.24 on the families, against 0.77 and 0.37 for the fingerprint
+   image. Its *H*₁ classes predict the onset not at all, and their number varies
+   by a factor of twelve with the ratio between the two axes, which nothing in
+   the measurement fixes. It also costs 108× the lower-star sweep and has to
+   subsample the spectrum to run. The objection it rests on — that a lower-star
+   filtration yields no *H*₁ for a 1-D signal — is correct and, here, costs
+   nothing.
+6. **The two polyurethanes are separable by infrared after all.** A
    Savitzky–Golay second derivative with SNV recovers TPU, PUR and TR exactly by
    *k*-means (ARI 1.000), stable over ten of twelve filter settings and
    attributable neither to the supplier who delivered each batch nor to its
@@ -123,14 +133,16 @@ identification and prediction are not won by the same representation.
 ```
 data/raw/          where the instrument workbook goes; not redistributed
 data/processed/    resampled spectra, TG curves and labels — enough to rerun
-                   steps 2 to 12 without the workbook
+                   steps 2 to 13 without the workbook
 src/irtda/         the library: persistence, images, clustering, dataset,
                    features, thermal, plotting, plus descriptions (English
                    rendering of the Spanish batch labels), peaks (conventional
                    peak descriptors, the control of step 9) and preprocess
                    (derivative, baseline, scatter-correction and alignment
-                   baselines, the controls of step 10)
-scripts/           the fifteen pipeline steps
+                   baselines, the controls of step 10) and rips (the
+                   Vietoris-Rips pipeline of the literature, the control of
+                   step 13)
+scripts/           the sixteen pipeline steps
 tests/             unit tests for the persistence, image, description, peak
                    and pre-processing code
 results/           tables produced by the pipeline
@@ -179,7 +191,7 @@ library among them, since the persistence computation is implemented directly
 
 ```bash
 make                      # runs every step, a few minutes
-make test                 # 28 unit tests
+make test                 # 31 unit tests
 make clean                # removes everything the pipeline generates
 ```
 
@@ -192,6 +204,7 @@ make thermal regression multimodal
 make peaks                          # controlled comparison against peak tables
 make alignment                      # pre-processing and alignment baselines
 make window conformal               # the moulding decision and its guarantee
+make rips                           # the Vietoris-Rips pipeline of the literature
 ```
 
 or step by step:
@@ -212,6 +225,7 @@ python scripts/10c_confounders.py         # batch effects behind the derivative 
 python scripts/10b_alignment_figure.py    #   ... and its figure
 python scripts/11_moulding_window.py      # the prediction as a moulding decision
 python scripts/12_conformal_margin.py     # a safety margin with a guarantee
+python scripts/13_rips_comparison.py      # the Vietoris-Rips pipeline, head to head
 ```
 
 Steps 9 and 10 are the long ones. Both take `--parts`, and step 9 also

@@ -413,6 +413,55 @@ reaches *Q*² = 0.773 against a null whose 95th percentile is −0.011, *p* = 0.
 — the smallest value 300 permutations can return. Whatever the descriptors are
 reading, it is not noise.
 
+## 8b. The Vietoris–Rips pipeline, on the same data
+
+§3.1 argues for the lower-star filtration against the Vietoris–Rips construction
+that Conti *et al.* (2023) prefer, and argues it by construction. An argument by
+construction is not evidence. `13_rips_comparison.py` implements their pipeline
+— each spectral sample a point of the plane, a Vietoris–Rips filtration, Betti
+curves — and runs it on these 39 compounds.
+
+![rips](../figures/13_rips.png)
+
+**The parameter the comparison turns on.** A planar point cloud needs a metric,
+and the axes of a spectrum carry different units, so the distance between two
+samples depends on a ratio between wavenumber and absorbance that nothing in the
+measurement fixes. Sweeping it over two orders of magnitude, the number of *H*₁
+classes per spectrum falls from 70.5 to 5.7 — a factor of twelve — and
+everything those classes predict moves with it: *Q*² on the onset spans
+[−0.147, 0.320] and the ARI [−0.021, 0.413].
+
+| Representation | *Q*² (*T*₅) | ARI | AMI |
+|---|---|---|---|
+| Vietoris–Rips, Betti *H*₁ | −0.009 | 0.113 | 0.197 |
+| Vietoris–Rips, Betti *H*₀+*H*₁ | −0.042 | 0.240 | 0.369 |
+| Vietoris–Rips, Betti *H*₀ | 0.142 | 0.240 | 0.369 |
+| Lower-star, persistence image | 0.066 | 0.274 | 0.369 |
+| Lower-star, fingerprint image | **0.773** | 0.373 | **0.515** |
+| Peaks, position + prominence | 0.723 | **0.537** | 0.487 |
+| Raw spectra (SNV) | 0.581 | **0.558** | **0.662** |
+
+At the natural choice of ratio the Betti curve of *H*₁ predicts the onset not at
+all, and concatenating it with *H*₀ makes the prediction worse than *H*₀ alone.
+Part of the loss is the vectorisation rather than the filtration: a Betti curve
+is a function of the filtration value alone and discards where along the
+spectrum anything happened — the same loss §3.2 identifies in the classical
+persistence image and the TFI repairs.
+
+**And what it costs.** The lower-star sweep runs on all 3 600 channels in 4.6 ms
+per spectrum. Vietoris–Rips is quadratic in memory before it is anything else,
+so the spectrum must be subsampled at all: 0.50 s at 600 points, 108× the cost,
+and 2.16 s at 1 000. The subsampling discards precisely the fine structure —
+shoulders on strong bands — that a lower-star prominence records exactly.
+
+The disagreement is therefore settled on these data, in favour of the lower-star
+construction. Their objection is correct as stated — a lower-star filtration
+produces no *H*₁ for a 1-D signal — but for a vibrational spectrum that costs
+nothing, because the *H*₁ a Vietoris–Rips complex supplies in its place is a
+function of an arbitrary parameter and carries no signal about either property
+measured here. Whether the same holds for their Raman data, with a different
+task and instrument, these data cannot say.
+
 ## 9. Conclusions
 
 1. The persistent-homology workflow of Frahi *et al.* transfers to IR spectra

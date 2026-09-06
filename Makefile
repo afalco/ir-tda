@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal rips test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal rips
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -58,6 +58,10 @@ window:
 conformal:
 	$(PYTHON) scripts/12_conformal_margin.py
 	$(PYTHON) scripts/11_moulding_window.py
+
+# The Vietoris-Rips pipeline of the literature, on the same data. Needs ripser.
+rips:
+	$(PYTHON) scripts/13_rips_comparison.py
 
 test:
 	$(PYTHON) -m pytest -q
