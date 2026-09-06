@@ -494,6 +494,18 @@ so the spectrum must be subsampled at all: 0.50 s at 600 points, 108× the cost,
 and 2.16 s at 1 000. The subsampling discards precisely the fine structure —
 shoulders on strong bands — that a lower-star prominence records exactly.
 
+The same choice is made elsewhere and paid for the same way. Yu and Chen (2026)
+also decline the lower-star filtration for mid-infrared spectra, reaching a
+point cloud by a time-delay embedding of sliding windows (*m* = 2, τ = 1) before
+applying Vietoris–Rips; the window length and the two embedding parameters are
+free in exactly the way the axis ratio is, and the authors note the
+approximately quadratic dependence on the number of embedded points that
+follows. Their data are the six FTIR benchmarks of the UCR archive rather than a
+campaign with an independently measured property, so no comparison of results is
+drawn — the point of contact is that every route to a Vietoris–Rips complex
+introduces parameters the measurement does not determine, and the lower-star
+filtration introduces none.
+
 The disagreement is therefore settled on these data, in favour of the lower-star
 construction. Their objection is correct as stated — a lower-star filtration
 produces no *H*₁ for a 1-D signal — but for a vibrational spectrum that costs
@@ -599,6 +611,10 @@ task and instrument, these data cannot say.
 8. P. H. C. Eilers, H. F. M. Boelens. *Baseline correction with asymmetric
    least squares smoothing*. Technical report, Leiden University Medical
    Centre, 2005 — the baseline correction of §7.
-9. R. F. Barber, E. J. Candès, A. Ramdas, R. J. Tibshirani. *Predictive
+9. H.-C. Yu, Y.-K. Chen. *Improved FTIR-based classification for food
+   authentication using a topological ensemble framework*. Current Research in
+   Food Science 12:101441, 2026. doi:10.1016/j.crfs.2026.101441 — the
+   time-delay-embedding route to Vietoris–Rips discussed in §8b.
+10. R. F. Barber, E. J. Candès, A. Ramdas, R. J. Tibshirani. *Predictive
    inference with the jackknife+*. The Annals of Statistics 49(1):486–507,
    2021. doi:10.1214/20-AOS1965 — the certified margin of §8.
