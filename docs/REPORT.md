@@ -413,6 +413,46 @@ reaches *Q*² = 0.773 against a null whose 95th percentile is −0.011, *p* = 0.
 — the smallest value 300 permutations can return. Whatever the descriptors are
 reading, it is not noise.
 
+## 7b. How much of the reported *Q*² is the partition?
+
+`14_repeated_cv.py` asks what a single number hides at *n* = 39.
+
+The seed of the inner loop that selects the number of PLS components leaves the
+ridge figures untouched — the penalty is chosen by a deterministic internal
+criterion — while the PLS figures move over twenty seeds: the fingerprint image
+by ±0.017, the raw spectra by ±0.065, the classical persistence image by ±0.107.
+Every headline value in this report is a ridge value.
+
+Leave-one-out itself is the low-bias, high-variance end of the choice. Repeating
+an outer *k*-fold twenty times:
+
+| Representation | leave-one-out | 5-fold | 10-fold |
+|---|---|---|---|
+| fingerprint image | **0.773** | **0.661 ± 0.134** | **0.730 ± 0.101** |
+| peaks, position + prominence | 0.723 | 0.588 ± 0.148 | 0.666 ± 0.118 |
+| family mean | 0.706 | 0.608 ± 0.186 | 0.657 ± 0.142 |
+| Savitzky–Golay 2nd derivative | 0.557 | 0.610 ± 0.167 | 0.586 ± 0.138 |
+| raw spectra (SNV) | 0.581 | 0.390 ± 0.320 | 0.387 ± 0.476 |
+| persistence image | 0.066 | −0.008 ± 0.109 | 0.030 ± 0.070 |
+
+![repeated cv](../figures/14_repeated_cv.png)
+
+Leave-one-out is optimistic relative to *k*-fold on the same data, and the
+central 95 % of repetitions for the fingerprint image spans [0.40, 0.79] — an
+interval that overlaps every other row, so read marginally the ranking is not
+resolved. The raw spectra are worse than that: σ = 0.32 at *k* = 5 and 0.48 at
+*k* = 10, dipping below −0.8 on some partitions. A representation that unstable
+is not a usable baseline whatever its mean.
+
+The comparisons, though, are paired — the same partition scores every
+representation — and paired they are far better resolved. Across the twenty
+repetitions the fingerprint image leads the persistence image in 100 %, the raw
+spectra in 95 %, a peak table with prominence in 95 %, the second-derivative
+chain in 80 %, and the family mean in 75 %. That last figure puts a number on
+the reservation §5 states in words: the fingerprint image extracts the onset
+better than the absorbance values do, and whether it does so beyond identifying
+the material family remains suggestive at this sample size.
+
 ## 8b. The Vietoris–Rips pipeline, on the same data
 
 §3.1 argues for the lower-star filtration against the Vietoris–Rips construction

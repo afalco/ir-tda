@@ -119,6 +119,15 @@ with a margin that carries a finite-sample guarantee (jackknife+; realised risk
 | Peaks, position + prominence | **8.9 °C** | **24.3 °C** |
 | Fingerprint image | 9.0 °C | 24.6 °C |
 
+These estimates are wide at this sample size. Under a repeated outer *k*-fold
+the onset *Q*² of the fingerprint image spans [0.40, 0.79] over the central 95 %
+of twenty repetitions, and leave-one-out is optimistic relative to it (0.77
+against 0.66 at *k* = 5). The comparisons are better resolved than the margins,
+because the same partition scores every representation: the fingerprint image
+leads the raw spectra and a conventional peak table in 95 % of repetitions, the
+second-derivative chain in 80 % and the family mean in 75 %. The raw spectra are
+also the least stable baseline, with a standard deviation of 0.32 at *k* = 5.
+
 Two degrees of moulding temperature returned over knowing the polymer class
 (1.96 °C, [1.08, 2.86]) — certified, where an uncalibrated empirical quantile
 suggested eight and delivered a 7.7 % risk when asked for 5 %. Note that the
@@ -133,7 +142,7 @@ identification and prediction are not won by the same representation.
 ```
 data/raw/          where the instrument workbook goes; not redistributed
 data/processed/    resampled spectra, TG curves and labels — enough to rerun
-                   steps 2 to 13 without the workbook
+                   steps 2 to 14 without the workbook
 src/irtda/         the library: persistence, images, clustering, dataset,
                    features, thermal, plotting, plus descriptions (English
                    rendering of the Spanish batch labels), peaks (conventional
@@ -142,7 +151,7 @@ src/irtda/         the library: persistence, images, clustering, dataset,
                    baselines, the controls of step 10) and rips (the
                    Vietoris-Rips pipeline of the literature, the control of
                    step 13)
-scripts/           the sixteen pipeline steps
+scripts/           the seventeen pipeline steps
 tests/             unit tests for the persistence, image, description, peak
                    and pre-processing code
 results/           tables produced by the pipeline
@@ -205,6 +214,7 @@ make peaks                          # controlled comparison against peak tables
 make alignment                      # pre-processing and alignment baselines
 make window conformal               # the moulding decision and its guarantee
 make rips                           # the Vietoris-Rips pipeline of the literature
+make repeatedcv                     # repeated nested cross-validation
 ```
 
 or step by step:
@@ -226,6 +236,7 @@ python scripts/10b_alignment_figure.py    #   ... and its figure
 python scripts/11_moulding_window.py      # the prediction as a moulding decision
 python scripts/12_conformal_margin.py     # a safety margin with a guarantee
 python scripts/13_rips_comparison.py      # the Vietoris-Rips pipeline, head to head
+python scripts/14_repeated_cv.py          # how much of the Q2 is the partition
 ```
 
 Steps 9 and 10 are the long ones. Both take `--parts`, and step 9 also

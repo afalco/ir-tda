@@ -1,8 +1,8 @@
 PYTHON ?= python3
 
-.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal rips test clean
+.PHONY: all extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal rips repeatedcv test clean
 
-all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal rips
+all: extract persistence cluster robustness sensitivity thermal regression multimodal peaks alignment window conformal rips repeatedcv
 
 extract:
 	$(PYTHON) scripts/01_extract_spectra.py
@@ -62,6 +62,11 @@ conformal:
 # The Vietoris-Rips pipeline of the literature, on the same data. Needs ripser.
 rips:
 	$(PYTHON) scripts/13_rips_comparison.py
+
+# How much of the reported Q2 is the partition: the seed of the inner selection
+# loop, and a repeated outer k-fold against leave-one-out.
+repeatedcv:
+	$(PYTHON) scripts/14_repeated_cv.py --models ridge
 
 test:
 	$(PYTHON) -m pytest -q
